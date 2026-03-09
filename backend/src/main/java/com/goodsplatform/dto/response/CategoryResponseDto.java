@@ -1,0 +1,36 @@
+package com.goodsplatform.dto.response;
+
+import com.goodsplatform.entity.Category;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Getter
+@Builder
+public class CategoryResponseDto {
+    private Long categoryId;
+    private String name;
+    private String path;
+    private Integer level;
+    private LocalDateTime createdAt;
+
+    @Builder.Default
+    private List<CategoryResponseDto> children = new ArrayList<>();
+
+    public static CategoryResponseDto from(Category category) {
+        return CategoryResponseDto.builder()
+                .categoryId(category.getCategoryId())
+                .name(category.getName())
+                .path(category.getPath())
+                .level(category.getLevel())
+                .createdAt(category.getCreatedAt())
+                .children(category.getChildren() != null ? category.getChildren().stream()
+                        .map(CategoryResponseDto::from)
+                        .collect(Collectors.toList()) : new ArrayList<>())
+                .build();
+    }
+}

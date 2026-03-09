@@ -1,0 +1,224 @@
+{
+  "items": [
+    {
+      "id": "dummy-1",
+      "name": "니케 피규어 1",
+      "categoryId": "uncategorized",
+      "quantity": 3,
+      "price": 25000,
+      "date": "2026-02-15T00:00:00.000Z",
+      "notes": "테스트 아이템 1",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-2",
+      "name": "씰 스티커 세트",
+      "categoryId": "uncategorized",
+      "quantity": 5,
+      "price": 8000,
+      "date": "2026-02-20T00:00:00.000Z",
+      "notes": "테스트 아이템 2",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-3",
+      "name": "한정판 굿즈",
+      "categoryId": "uncategorized",
+      "quantity": 1,
+      "price": 45000,
+      "date": "2026-01-10T00:00:00.000Z",
+      "notes": "테스트 아이템 3",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-4",
+      "name": "포토카드 세트",
+      "categoryId": "uncategorized",
+      "quantity": 10,
+      "price": 15000,
+      "date": "2026-02-25T00:00:00.000Z",
+      "notes": "테스트 아이템 4",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-5",
+      "name": "아크릴 스탠드",
+      "categoryId": "uncategorized",
+      "quantity": 2,
+      "price": 12000,
+      "date": "2026-02-18T00:00:00.000Z",
+      "notes": "테스트 아이템 5",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-6",
+      "name": "키링 컬렉션",
+      "categoryId": "uncategorized",
+      "quantity": 7,
+      "price": 6000,
+      "date": "2026-03-01T00:00:00.000Z",
+      "notes": "테스트 아이템 6",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-7",
+      "name": "배지 세트",
+      "categoryId": "uncategorized",
+      "quantity": 15,
+      "price": 5000,
+      "date": "2026-02-10T00:00:00.000Z",
+      "notes": "테스트 아이템 7",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-8",
+      "name": "엽서 세트",
+      "categoryId": "uncategorized",
+      "quantity": 4,
+      "price": 7000,
+      "date": "2026-01-25T00:00:00.000Z",
+      "notes": "테스트 아이템 8",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-9",
+      "name": "포스터",
+      "categoryId": "uncategorized",
+      "quantity": 2,
+      "price": 10000,
+      "date": "2026-02-05T00:00:00.000Z",
+      "notes": "테스트 아이템 9",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-10",
+      "name": "타펫",
+      "categoryId": "uncategorized",
+      "quantity": 3,
+      "price": 9000,
+      "date": "2026-02-28T00:00:00.000Z",
+      "notes": "테스트 아이템 10",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-11",
+      "name": "클리어 파일",
+      "categoryId": "uncategorized",
+      "quantity": 8,
+      "price": 3000,
+      "date": "2026-01-15T00:00:00.000Z",
+      "notes": "테스트 아이템 11",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-12",
+      "name": "노트",
+      "categoryId": "uncategorized",
+      "quantity": 5,
+      "price": 8000,
+      "date": "2026-02-12T00:00:00.000Z",
+      "notes": "테스트 아이템 12",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-13",
+      "name": "펜 세트",
+      "categoryId": "uncategorized",
+      "quantity": 6,
+      "price": 12000,
+      "date": "2026-01-20T00:00:00.000Z",
+      "notes": "테스트 아이템 13",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-14",
+      "name": "마우스패드",
+      "categoryId": "uncategorized",
+      "quantity": 2,
+      "price": 18000,
+      "date": "2026-02-22T00:00:00.000Z",
+      "notes": "테스트 아이템 14",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-15",
+      "name": "쿠션",
+      "categoryId": "uncategorized",
+      "quantity": 1,
+      "price": 35000,
+      "date": "2026-01-30T00:00:00.000Z",
+      "notes": "테스트 아이템 15",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-16",
+      "name": "텀블러",
+      "categoryId": "uncategorized",
+      "quantity": 3,
+      "price": 22000,
+      "date": "2026-02-08T00:00:00.000Z",
+      "notes": "테스트 아이템 16",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-17",
+      "name": "에코백",
+      "categoryId": "uncategorized",
+      "quantity": 4,
+      "price": 15000,
+      "date": "2026-02-14T00:00:00.000Z",
+      "notes": "테스트 아이템 17",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-18",
+      "name": "파우치",
+      "categoryId": "uncategorized",
+      "quantity": 5,
+      "price": 13000,
+      "date": "2026-01-28T00:00:00.000Z",
+      "notes": "테스트 아이템 18",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-19",
+      "name": "미니 피규어",
+      "categoryId": "uncategorized",
+      "quantity": 9,
+      "price": 8000,
+      "date": "2026-02-03T00:00:00.000Z",
+      "notes": "테스트 아이템 19",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    },
+    {
+      "id": "dummy-20",
+      "name": "랜덤 박스",
+      "categoryId": "uncategorized",
+      "quantity": 2,
+      "price": 30000,
+      "date": "2026-02-26T00:00:00.000Z",
+      "notes": "테스트 아이템 20",
+      "createdAt": "2026-03-06T00:00:00.000Z",
+      "updatedAt": "2026-03-06T00:00:00.000Z"
+    }
+  ]
+}
