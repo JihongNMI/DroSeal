@@ -8,6 +8,7 @@ import com.goodsplatform.entity.InventoryItem;
 import com.goodsplatform.entity.User;
 import com.goodsplatform.repository.CollectionItemRepository;
 import com.goodsplatform.repository.InventoryItemRepository;
+import com.goodsplatform.repository.InventoryCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ public class InventoryItemService {
 
     private final InventoryItemRepository inventoryItemRepository;
     private final CollectionItemRepository collectionItemRepository;
+    private final InventoryCategoryRepository inventoryCategoryRepository;
 
     /**
      * 유저의 인벤토리 목록 페이징 조회
@@ -50,10 +52,18 @@ public class InventoryItemService {
             throw new IllegalArgumentException("도감 아이템을 선택하거나, 직접 이름을 입력해야 합니다.");
         }
 
-        // 3. 인벤토리 아이템 생성 (regType에 따른 분기 로직은 향후 AI 연동 고도화 시 추가)
+        // 3. 카테고리 검증
+        com.goodsplatform.entity.InventoryCategory category = null;
+        if (request.getCategoryId() != null) {
+            category = inventoryCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다: " + request.getCategoryId()));
+        }
+
+        // 4. 인벤토리 아이템 생성 (regType에 따른 분기 로직은 향후 AI 연동 고도화 시 추가)
         InventoryItem inventoryItem = InventoryItem.builder()
                 .user(user)
                 .item(masterItem)
+                .category(category)
                 .customName(request.getCustomName())
                 .regType(request.getRegType())
                 .aiConfidence(request.getAiConfidence())
@@ -66,7 +76,7 @@ public class InventoryItemService {
 
         InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
 
-        // 4. 응답 DTO 변환 반환
+        // 5. 응답 DTO 변환 반환
         return InventoryItemResponseDto.from(savedItem);
     }
 
@@ -85,8 +95,20 @@ public class InventoryItemService {
         InventoryItem inventoryItem = inventoryItemRepository.findByInventoryIdAndUser(inventoryId, user)
                 .orElseThrow(() -> new IllegalArgumentException("접근 권한이 없거나 존재하지 않는 아이템입니다."));
 
-        inventoryItem.setNote(request.getNote());
-        inventoryItem.setPurchasedPrice(request.getPurchasedPrice());
+        // 카테고리 업데이트
+        if (request.getCategoryId() != null) {
+            com.goodsplatform.entity.InventoryCategory category = inventoryCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다: " + request.getCategoryId()));
+            inventoryItem.setCategory(category);
+        }
+
+        // 노트 및 가격 업데이트
+        if (request.getNote() != null) {
+            inventoryItem.setNote(request.getNote());
+        }
+        if (request.getPurchasedPrice() != null) {
+            inventoryItem.setPurchasedPrice(request.getPurchasedPrice());
+        }
 
         // @UpdateTimestamp가 있으므로 save 시 자동 갱신됨
         return InventoryItemResponseDto.from(inventoryItem);

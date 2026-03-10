@@ -43,7 +43,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         price: dto.purchasedPrice || 0,
         imageUrl: dto.userImageUrl || undefined,
         createdAt: new Date(dto.createdAt),
-        updatedAt: new Date(dto.updatedAt),
+        updatedAt: new Date(dto.createdAt), // Backend doesn't return updatedAt, use createdAt
         notes: dto.note
       }))
 
@@ -79,6 +79,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
       setLoading(true)
       await createInventoryItem({
         itemId: item.itemId,
+        categoryId: item.categoryId ? parseInt(item.categoryId) : undefined,
         customName: item.name,
         regType: 'MANUAL',
         note: item.notes,
@@ -106,7 +107,18 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
       setLoading(true)
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
-        await apiUpdateInventoryItem(numericId, updates)
+        const request: any = {}
+        
+        // categoryId 변환
+        if (updates.categoryId !== undefined) {
+          request.categoryId = updates.categoryId !== 'uncategorized' ? parseInt(updates.categoryId) : null
+        }
+        
+        // 다른 필드들
+        if (updates.note !== undefined) request.note = updates.note
+        if (updates.price !== undefined) request.purchasedPrice = updates.price
+        
+        await apiUpdateInventoryItem(numericId, request)
       }
 
       addHistoryRecord({

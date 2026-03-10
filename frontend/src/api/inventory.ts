@@ -14,6 +14,8 @@ export interface InventoryItemDto {
     inventoryId: number;
     collectionItemId?: number;
     collectionItemName?: string;
+    categoryId?: number;
+    categoryName?: string;
     customName?: string;
     regType: RegistrationType;
     aiConfidence?: number;
@@ -27,6 +29,7 @@ export interface InventoryItemDto {
 
 export interface InventoryItemCreateRequest {
     itemId?: number;
+    categoryId?: number;
     customName?: string;
     regType: RegistrationType;
     aiConfidence?: number;
@@ -78,6 +81,7 @@ export const fetchInventoryItemByCollectionItemId = async (collectionItemId: num
 };
 
 export interface InventoryItemUpdateRequest {
+    categoryId?: number;
     note?: string;
     purchasedPrice?: number;
 }

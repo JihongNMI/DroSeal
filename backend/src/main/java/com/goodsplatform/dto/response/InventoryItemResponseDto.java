@@ -18,6 +18,10 @@ public class InventoryItemResponseDto {
     private Long collectionItemId;
     private String collectionItemName;
 
+    // 카테고리 정보
+    private Long categoryId;
+    private String categoryName;
+
     // 미등록 시 직접 입력한 이름
     private String customName;
 
@@ -42,11 +46,16 @@ public class InventoryItemResponseDto {
     public static InventoryItemResponseDto from(InventoryItem inventoryItem) {
         String masterName = inventoryItem.getItem() != null ? inventoryItem.getItem().getName() : null;
         Long masterId = inventoryItem.getItem() != null ? inventoryItem.getItem().getItemId() : null;
+        
+        Long categoryId = inventoryItem.getCategory() != null ? inventoryItem.getCategory().getCategoryId() : null;
+        String categoryName = inventoryItem.getCategory() != null ? inventoryItem.getCategory().getName() : null;
 
         return InventoryItemResponseDto.builder()
                 .inventoryId(inventoryItem.getInventoryId())
                 .collectionItemId(masterId)
                 .collectionItemName(masterName)
+                .categoryId(categoryId)
+                .categoryName(categoryName)
                 .customName(inventoryItem.getCustomName())
                 .regType(inventoryItem.getRegType())
                 .aiConfidence(inventoryItem.getAiConfidence())

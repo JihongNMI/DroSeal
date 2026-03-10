@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class InventoryItemUpdateRequestDto {
+    private Long categoryId;
     private String note;
     private BigDecimal purchasedPrice;
 }

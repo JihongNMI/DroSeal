@@ -21,6 +21,11 @@ public class InventoryItemCreateRequestDto {
     private Long itemId;
 
     /**
+     * 카테고리 ID
+     */
+    private Long categoryId;
+
+    /**
      * 미등록 굿즈일 경우 직접 작성하는 이름
      */
     private String customName;

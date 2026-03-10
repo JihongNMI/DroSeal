@@ -30,6 +30,10 @@ public class InventoryItem {
     @JoinColumn(name = "item_id")
     private CollectionItem item;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private InventoryCategory category;
+
     @Column(name = "custom_name", length = 100)
     private String customName;
 
