@@ -1,0 +1,19 @@
+# Core API
+fastapi
+uvicorn
+pydantic
+python-multipart
+python-dotenv
+
+# AI & Image Processing
+ultralytics         # YOLOv8 Object Detection
+opencv-python       # Image Processing (cv2)
+Pillow              # Image handling
+numpy               # Math & Array handling
+
+# Vector Search (Planned)
+pinecone
+transformers
+
+# LLM 
+google-generativeai

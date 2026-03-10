@@ -2,7 +2,9 @@ package com.goodsplatform.repository;
 
 import com.goodsplatform.dto.request.ItemSearchCondition;
 import com.goodsplatform.entity.CollectionItem;
-import com.goodsplatform.entity.InventoryCategory;
+import com.goodsplatform.entity.QCollection;
+import com.goodsplatform.entity.QCollectionItem;
+import com.goodsplatform.entity.QInventoryCategory;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,10 +16,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.goodsplatform.entity.QInventoryCategory.inventoryCategory;
-import static com.goodsplatform.entity.QCollection.collection;
-import static com.goodsplatform.entity.QCollectionItem.collectionItem;
-
 @Repository
 @RequiredArgsConstructor
 public class CollectionItemRepositoryCustomImpl implements CollectionItemRepositoryCustom {
@@ -26,12 +24,15 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
 
     @Override
     public Page<CollectionItem> searchHybrid(ItemSearchCondition condition, Pageable pageable) {
+        QCollection collection = QCollection.collection;
+        QCollectionItem collectionItem = QCollectionItem.collectionItem;
+        QInventoryCategory inventoryCategory = QInventoryCategory.inventoryCategory;
 
         // 1. 데이터 페치 쿼리 (컬렉션과 카테고리는 N+1 방지를 위해 fetchJoin)
         List<CollectionItem> content = queryFactory
                 .selectFrom(collectionItem)
                 .leftJoin(collectionItem.collection, collection).fetchJoin()
-                .leftJoin(collection.InventoryCategory, inventoryCategory).fetchJoin()
+                .leftJoin(collection.categories, inventoryCategory).fetchJoin()
                 .where(
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()))
@@ -45,7 +46,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
                 .select(collectionItem.count())
                 .from(collectionItem)
                 .leftJoin(collectionItem.collection, collection)
-                .leftJoin(collection.InventoryCategory, inventoryCategory)
+                .leftJoin(collection.categories, inventoryCategory)
                 .where(
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()));
@@ -62,7 +63,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
             return null;
         }
         // Querydsl의 startsWith()는 내부적으로 LIKE '1/5%' 로 변환됨
-        return inventoryCategory.path.startsWith(pathPrefix);
+        return QInventoryCategory.inventoryCategory.path.startsWith(pathPrefix);
     }
 
     /**
@@ -73,7 +74,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
         if (keyword == null || keyword.isBlank()) {
             return null;
         }
-        return collectionItem.name.containsIgnoreCase(keyword)
-                .or(collectionItem.description.containsIgnoreCase(keyword));
+        return QCollectionItem.collectionItem.name.containsIgnoreCase(keyword)
+                .or(QCollectionItem.collectionItem.description.containsIgnoreCase(keyword));
     }
 }

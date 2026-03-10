@@ -26,10 +26,19 @@ public class CollectionProgressResponseDto {
     private Integer collectedItems;
 
     public static CollectionProgressResponseDto from(Collection collection, int total, int collected) {
+        Long firstCategoryId = null;
+        String firstCategoryName = "Unknown";
+
+        if (collection.getCategories() != null && !collection.getCategories().isEmpty()) {
+            com.goodsplatform.entity.InventoryCategory first = collection.getCategories().get(0);
+            firstCategoryId = first.getCategoryId();
+            firstCategoryName = first.getName();
+        }
+
         return CollectionProgressResponseDto.builder()
                 .collectionId(collection.getCollectionId())
-                .categoryId(collection.getInventoryCategory().getCategoryId())
-                .categoryName(collection.getInventoryCategory().getName())
+                .categoryId(firstCategoryId)
+                .categoryName(firstCategoryName)
                 .name(collection.getName())
                 .description(collection.getDescription())
                 .isOfficial(collection.getIsOfficial())

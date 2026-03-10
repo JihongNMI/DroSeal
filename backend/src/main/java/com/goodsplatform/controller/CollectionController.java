@@ -38,14 +38,19 @@ public class CollectionController {
     @GetMapping("/{id}/progress")
     public ResponseEntity<CollectionProgressResponseDto> getCollectionProgress(@PathVariable("id") Long id) {
         User user = getCurrentMockUser();
-        CollectionProgressResponseDto response = collectionService.getCollectionProgress(id, user);
+        com.goodsplatform.entity.Collection collection = collectionService.getCollectionById(id);
+        CollectionProgressResponseDto response = collectionService.getCollectionProgress(collection, user);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<Page<CollectionProgressResponseDto>> getAllCollections(Pageable pageable) {
+    public ResponseEntity<Page<CollectionProgressResponseDto>> getAllCollections(
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            Pageable pageable) {
         User user = getCurrentMockUser();
-        Page<CollectionProgressResponseDto> response = collectionService.getAllCollections(pageable, user);
+        Page<CollectionProgressResponseDto> response = collectionService.getAllCollections(categoryId, keyword,
+                pageable, user);
         return ResponseEntity.ok(response);
     }
 }

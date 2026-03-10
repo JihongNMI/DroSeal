@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.goodsplatform.entity.QCategory.category;
 import static com.goodsplatform.entity.QCollectionItem.collectionItem;
 import static com.goodsplatform.entity.QInventoryItem.inventoryItem;
 
