@@ -15,11 +15,18 @@ import {
 } from '../api/collectionNote'
 import { createInventoryItem } from '../api/inventory'
 import { uploadImage, analyzeImage } from '../api/upload'
+import { fetchCategoryTree, CategoryDto } from '../api/category'
 
 export default function Encyclopedia(): JSX.Element {
   const [collections, setCollections] = useState<CollectionProgressResponseDto[]>([])
   const [loading, setLoading] = useState(false)
   const [showCustomModal, setShowCustomModal] = useState(false)
+  const [categories, setCategories] = useState<CategoryDto[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | string>('')
+
+  // Search & Filter State
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [filterCategoryId, setFilterCategoryId] = useState<number | string>('')
 
   // Album View Modal State
   const [selectedAlbum, setSelectedAlbum] = useState<CollectionProgressResponseDto | null>(null)
@@ -77,18 +84,22 @@ export default function Encyclopedia(): JSX.Element {
     }
   }
 
+  const loadCollectionItems = async (collectionId: number) => {
+    try {
+      const data = await fetchCollectionItems(collectionId)
+      setCollectionItems(data.content || [])
+    } catch (error) {
+      console.error('Failed to load collection items', error)
+    }
+  }
+
   const handleOpenAlbum = async (col: CollectionProgressResponseDto) => {
     setSelectedAlbum(col)
     setCurrentPage(1)
     setCollectionItems([]) // 화면 플리커 방지 및 이전 데이터 지우개
     setSelectedCardItem(null)
     setSelectedEmptySlotInfo(null)
-    try {
-      const data = await fetchCollectionItems(col.collectionId)
-      setCollectionItems(data.content || [])
-    } catch (error) {
-      console.error('Failed to load collection items', error)
-    }
+    await loadCollectionItems(col.collectionId)
   }
 
   // Custom Entry Modal States
@@ -120,19 +131,30 @@ export default function Encyclopedia(): JSX.Element {
   const loadCollections = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchCollections(0, 50)
-
-      // 백엔드의 fetchCollections API가 이미 CollectionProgressResponseDto를 Page로 감싸서 반환하므로 
-      // 추가적인 Progress API 호출 루프를 제거하여 N+1 문제와 500 에러를 방지합니다.
+      const data = await fetchCollections(0, 50,
+        filterCategoryId === '' ? undefined : Number(filterCategoryId),
+        searchKeyword.trim() === '' ? undefined : searchKeyword
+      )
       setCollections(data.content || [])
     } catch (error) {
       console.error('Failed to load collections', error)
-      // 백엔드 연결 실패 시 화면에 No collections found가 뜨도록 유도하기 위해 alert는 주석 처리하거나 조용히 넘아갑니다.
-      // alert('Failed to load collections from server') 
     } finally {
       setLoading(false)
     }
+  }, [filterCategoryId, searchKeyword])
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const data = await fetchCategoryTree()
+      setCategories(data || [])
+    } catch (error) {
+      console.error('Failed to load categories', error)
+    }
   }, [])
+
+  useEffect(() => {
+    loadCategories()
+  }, [loadCategories])
 
   useEffect(() => {
     loadCollections()
@@ -148,11 +170,25 @@ export default function Encyclopedia(): JSX.Element {
       return
     }
 
+    if (!selectedCategoryId) {
+      alert('Please select a category!')
+      return
+    }
+
     try {
+      console.log('Attempting to create collection with data:', {
+        name: customName,
+        description: description,
+        categoryId: Number(selectedCategoryId),
+        isPublic,
+        gridX,
+        gridY
+      });
+
       await createCollection({
         name: customName,
         description: description,
-        categoryId: 1, // temporary hardcoded category id for demo
+        categoryId: Number(selectedCategoryId),
         isPublic,
         gridX,
         gridY
@@ -160,9 +196,11 @@ export default function Encyclopedia(): JSX.Element {
       alert('Collection created successfully!')
       handleCloseModal()
       loadCollections()
-    } catch (error) {
-      console.error('Failed to create collection', error)
-      alert('Failed to create collection')
+    } catch (error: any) {
+      console.error('Detailed Error creating collection:', error)
+      // 서버에서 보내는 상세 에러 메시지가 있다면 출력
+      const errorMsg = error.message || 'Unknown error occurred';
+      alert(`Failed to create collection: ${errorMsg}`)
     }
   }
 
@@ -173,6 +211,7 @@ export default function Encyclopedia(): JSX.Element {
     setIsPublic(false)
     setGridX(3)
     setGridY(12)
+    setSelectedCategoryId('')
   }
 
   const handleOpenAddCardModal = () => {
@@ -231,7 +270,9 @@ export default function Encyclopedia(): JSX.Element {
 
       alert('Card added to your inventory successfully!')
       setIsAddCardModalOpen(false)
-      loadCollections() // Refresh progress
+      loadCollections() // Refresh progress on main board
+      // 바로 카드 목록 새로고침
+      await loadCollectionItems(selectedAlbum.collectionId)
     } catch (error) {
       console.error('Failed to add card:', error)
       alert('Failed to add card to inventory. Please check server logs.')
@@ -316,6 +357,34 @@ export default function Encyclopedia(): JSX.Element {
           >
             Add Custom Entry
           </button>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="Search by collection name..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+            />
+            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div className="w-full md:w-64">
+            <select
+              value={filterCategoryId}
+              onChange={(e) => setFilterCategoryId(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-gray-700"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat.categoryId} value={cat.categoryId}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -740,6 +809,24 @@ export default function Encyclopedia(): JSX.Element {
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedCategoryId}
+                      onChange={(e) => setSelectedCategoryId(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map(cat => (
+                        <option key={cat.categoryId} value={cat.categoryId}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

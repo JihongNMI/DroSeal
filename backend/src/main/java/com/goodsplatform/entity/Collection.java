@@ -7,7 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Collections", indexes = @Index(name = "idx_collections_category", columnList = "category_id"))
+@Table(name = "Collections")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,9 +20,10 @@ public class Collection {
     @Column(name = "collection_id")
     private Long collectionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private InventoryCategory InventoryCategory;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "Collections_Categories", joinColumns = @JoinColumn(name = "collection_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @Builder.Default
+    private java.util.List<InventoryCategory> categories = new java.util.ArrayList<>();
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;

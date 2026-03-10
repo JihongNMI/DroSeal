@@ -37,9 +37,14 @@ export interface CollectionProgressResponseDto {
     collectedItems: number;
 }
 
-export const fetchCollections = async (page: number = 0, size: number = 20): Promise<PageableResponse<CollectionProgressResponseDto>> => {
+export const fetchCollections = async (
+    page: number = 0,
+    size: number = 20,
+    categoryId?: number,
+    keyword?: string
+): Promise<PageableResponse<CollectionProgressResponseDto>> => {
     const response = await apiClient.get<PageableResponse<CollectionProgressResponseDto>>('/collections', {
-        params: { page, size }
+        params: { page, size, categoryId, keyword }
     });
     return response.data;
 };

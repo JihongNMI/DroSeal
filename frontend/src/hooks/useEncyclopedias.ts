@@ -1,59 +1,75 @@
-import { useState, useEffect } from 'react'
-import { saveData, loadData } from '../services/localStorage'
-import { STORAGE_KEYS, DEBOUNCE_DELAY } from '../constants/storage'
-import type { EncyclopediaData } from '../types'
+import { useState, useEffect, useCallback } from 'react'
+import { fetchCollections, createCollection as apiCreateCollection } from '../api/collection'
+import type { EncyclopediaData, Encyclopedia } from '../types'
 
 interface UseEncyclopediasReturn {
   data: EncyclopediaData
-  setData: (data: EncyclopediaData) => void
   loading: boolean
   error: string | null
+  addCollection: (name: string, categoryId: number, description?: string) => Promise<void>
+  refresh: () => Promise<void>
 }
 
 /**
- * Custom hook for managing encyclopedia data with automatic localStorage synchronization
+ * Custom hook for managing encyclopedia data with backend API integration
  * 
  * Features:
- * - Loads data from localStorage on mount
- * - Automatically saves changes to localStorage with 500ms debounce
- * - Provides loading and error states
- * 
- * @returns Encyclopedia data, setter function, loading state, and error state
+ * - Fetches collections from backend API
+ * - Provides add functionality with individual refresh
+ * - Handles loading and error states for API transactions
  */
 export function useEncyclopedias(): UseEncyclopediasReturn {
   const [data, setData] = useState<EncyclopediaData>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load data from localStorage on mount
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const loadedData = loadData<EncyclopediaData>(STORAGE_KEYS.ENCYCLOPEDIAS)
-      if (loadedData) {
-        setData(loadedData)
-      }
-      setLoading(false)
+      setLoading(true)
+      const response = await fetchCollections(0, 50) // Adjust page/size as needed
+
+      // Map API CollectionProgressResponseDto to the app's internal Encyclopedia interface
+      const mappedData: Encyclopedia[] = response.content.map(dto => ({
+        id: dto.collectionId.toString(),
+        title: dto.name,
+        description: dto.description || '',
+        items: [], // Items are loaded separately via Encyclopedia.tsx when an album is opened
+        createdAt: new Date(dto.createdAt),
+        updatedAt: new Date(dto.createdAt) // Fallback as updatedAt might be missing
+      }))
+
+      setData(mappedData)
+      setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load encyclopedias')
+      console.error('Failed to load collections', err)
+      setError('도감 데이터를 불러오는데 실패했습니다.')
+    } finally {
       setLoading(false)
     }
   }, [])
 
-  // Save data to localStorage with debounce
   useEffect(() => {
-    if (loading) return // Don't save during initial load
+    refresh()
+  }, [refresh])
 
-    const timeoutId = setTimeout(() => {
-      try {
-        saveData(STORAGE_KEYS.ENCYCLOPEDIAS, data)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save encyclopedias')
-      }
-    }, DEBOUNCE_DELAY)
+  const addCollection = async (name: string, categoryId: number, description?: string) => {
+    try {
+      setLoading(true)
+      await apiCreateCollection({
+        name,
+        categoryId,
+        description,
+        gridX: 9, // Default grid size for Encyclopedia
+        gridY: 10
+      })
+      await refresh()
+    } catch (err) {
+      setError('도감 생성에 실패했습니다.')
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    return () => clearTimeout(timeoutId)
-  }, [data, loading])
-
-  return { data, setData, loading, error }
+  return { data, loading, error, addCollection, refresh }
 }
