@@ -38,6 +38,10 @@ export function ItemForm({
 }: ItemFormProps) {
   const isEditMode = !!item
 
+  // Debug logging
+  console.log('[ItemForm] Received encyclopedias:', encyclopedias)
+  console.log('[ItemForm] Number of encyclopedias:', encyclopedias.length)
+
   // Form state
   const [name, setName] = useState(item?.name || '')
   const [categoryId, setCategoryId] = useState(item?.categoryId || uncategorizedId)
@@ -71,16 +75,29 @@ export function ItemForm({
   // Update form when item prop changes (for edit mode)
   useEffect(() => {
     if (item) {
-      setName(item.name)
-      setCategoryId(item.categoryId)
-      setQuantity(item.quantity)
+      console.log('ItemForm received item:', item)
+      setName(item.name || '')
+      setCategoryId(item.categoryId || uncategorizedId)
+      setQuantity(item.quantity || 1)
       setPrice(item.price?.toString() || '')
-      setDate(new Date(item.date).toISOString().split('T')[0])
+      
+      // date 필드 처리 - 없으면 현재 날짜 사용
+      if (item.date) {
+        try {
+          setDate(new Date(item.date).toISOString().split('T')[0])
+        } catch (e) {
+          console.error('Invalid date:', item.date)
+          setDate(new Date().toISOString().split('T')[0])
+        }
+      } else {
+        setDate(new Date().toISOString().split('T')[0])
+      }
+      
       setEncyclopediaId(item.encyclopediaId || '')
-      setNotes(item.notes)
+      setNotes(item.notes || '')
       setImageUrl(item.imageUrl || '')
     }
-  }, [item])
+  }, [item, uncategorizedId])
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}

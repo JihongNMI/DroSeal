@@ -14,9 +14,12 @@ export interface InventoryItemDto {
     inventoryId: number;
     collectionItemId?: number;
     collectionItemName?: string;
+    collectionId?: number;
+    collectionName?: string;
     categoryId?: number;
     categoryName?: string;
     customName?: string;
+    quantity: number;
     regType: RegistrationType;
     aiConfidence?: number;
     location?: string;
@@ -29,8 +32,10 @@ export interface InventoryItemDto {
 
 export interface InventoryItemCreateRequest {
     itemId?: number;
+    collectionId?: number;
     categoryId?: number;
     customName?: string;
+    quantity: number;
     regType: RegistrationType;
     aiConfidence?: number;
     location?: string;
@@ -81,9 +86,15 @@ export const fetchInventoryItemByCollectionItemId = async (collectionItemId: num
 };
 
 export interface InventoryItemUpdateRequest {
+    collectionId?: number;
     categoryId?: number;
+    customName?: string;
+    quantity?: number;
+    location?: string;
+    userImageUrl?: string;
     note?: string;
     purchasedPrice?: number;
+    purchasedAt?: string;
 }
 
 export const updateInventoryItemNoteAndPrice = async (inventoryId: number, request: InventoryItemUpdateRequest): Promise<InventoryItemDto> => {

@@ -348,19 +348,20 @@ export function Inventory() {
     }
   }
 
-  const handleUpdateItem = (item: Partial<InventoryItem>) => {
-    // Note: Temporary alert as useInventory API refactor simplified updates for quick deploy
-    alert('아이템 수정 기능은 곧 업데이트 될 예정입니다. (API 연동 중)')
-    /*
+  const handleUpdateItem = async (item: Partial<InventoryItem>) => {
     if (editingItem) {
-      updateItem(editingItem.id, item)
-      setShowItemForm(false)
-      setEditingItem(undefined)
+      try {
+        await updateItem(editingItem.id, item)
+        setShowItemForm(false)
+        setEditingItem(undefined)
+      } catch (error) {
+        alert('아이템 수정에 실패했습니다.')
+      }
     }
-    */
   }
 
   const handleEditItem = (item: InventoryItem) => {
+    console.log('handleEditItem called with:', item)
     setEditingItem(item)
     setShowItemForm(true)
   }

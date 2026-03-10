@@ -80,11 +80,25 @@ export const createCollectionItem = async (request: CollectionItemCreateRequestD
     const response = await apiClient.post<CollectionItemResponseDto>('/collection-items', request);
     return response.data;
 };
-// 도감 열람 시 소속된 모든 아이템 가져오기
+
+// 도감 아이템 전체 조회 (모든 아이템 가져오기)
 export const fetchCollectionItems = async (collectionId: number): Promise<PageableResponse<CollectionItemResponseDto>> => {
-    // 앨범 내의 60개 등 전체 아이템을 가져올 목적으로 size를 넉넉하게 잡습니다.
     const response = await apiClient.get<PageableResponse<CollectionItemResponseDto>>('/collection-items/search', {
         params: { collectionId, size: 200 }
+    });
+    return response.data;
+};
+
+// 인벤토리용: 모든 컬렉션 아이템 검색 (collectionId 없이)
+export const searchCollectionItems = async (
+    page: number = 0,
+    size: number = 100
+): Promise<PageableResponse<CollectionItemResponseDto>> => {
+    const response = await apiClient.get<PageableResponse<CollectionItemResponseDto>>('/collection-items/search', {
+        params: {
+            page,
+            size,
+        },
     });
     return response.data;
 };

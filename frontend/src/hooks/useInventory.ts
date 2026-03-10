@@ -39,11 +39,13 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         id: dto.inventoryId.toString(),
         name: dto.customName || dto.collectionItemName || 'Unnamed Item',
         categoryId: dto.categoryId?.toString() || 'uncategorized',
-        quantity: 1, // API currently returns single items
+        quantity: dto.quantity || 1,
         price: dto.purchasedPrice || 0,
+        date: dto.purchasedAt ? new Date(dto.purchasedAt) : new Date(dto.createdAt),
+        encyclopediaId: dto.collectionId?.toString(),
         imageUrl: dto.userImageUrl || undefined,
         createdAt: new Date(dto.createdAt),
-        updatedAt: new Date(dto.createdAt), // Backend doesn't return updatedAt, use createdAt
+        updatedAt: new Date(dto.createdAt),
         notes: dto.note
       }))
 
@@ -79,11 +81,14 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
       setLoading(true)
       await createInventoryItem({
         itemId: item.itemId,
+        collectionId: item.encyclopediaId ? parseInt(item.encyclopediaId) : undefined,
         categoryId: item.categoryId ? parseInt(item.categoryId) : undefined,
         customName: item.name,
+        quantity: item.quantity || 1,
         regType: 'MANUAL',
         note: item.notes,
         purchasedPrice: item.price,
+        purchasedAt: item.date ? new Date(item.date).toISOString() : undefined,
         location: item.location
       })
 
@@ -108,30 +113,45 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
       
       // 현재 아이템 정보 가져오기
       const currentItem = data.items.find(item => item.id === id)
-      const itemName = currentItem?.name || 'Unknown Item'
+      const itemName = updates.name || currentItem?.name || 'Unknown Item'
       
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
         const request: any = {}
+        
+        // collectionId 변환
+        if (updates.encyclopediaId !== undefined) {
+          request.collectionId = updates.encyclopediaId ? parseInt(updates.encyclopediaId) : null
+        }
         
         // categoryId 변환
         if (updates.categoryId !== undefined) {
           request.categoryId = updates.categoryId !== 'uncategorized' ? parseInt(updates.categoryId) : null
         }
         
-        // 다른 필드들
-        if (updates.note !== undefined) request.note = updates.note
+        // 다른 필드들 매핑
+        if (updates.name !== undefined) request.customName = updates.name
+        if (updates.quantity !== undefined) request.quantity = updates.quantity
+        if (updates.notes !== undefined) request.note = updates.notes
         if (updates.price !== undefined) request.purchasedPrice = updates.price
+        if (updates.imageUrl !== undefined) request.userImageUrl = updates.imageUrl
+        if (updates.date !== undefined) {
+          // Date 객체를 ISO string으로 변환
+          const dateValue = updates.date instanceof Date ? updates.date : new Date(updates.date)
+          request.purchasedAt = dateValue.toISOString()
+        }
         
         await apiUpdateInventoryItem(numericId, request)
       }
 
       // 변경 타입 결정
-      let changeType: 'item_updated' | 'category_changed' | 'price_updated' = 'item_updated'
+      let changeType: 'item_updated' | 'category_changed' | 'price_updated' | 'name_change' = 'item_updated'
       if (updates.categoryId !== undefined) {
         changeType = 'category_changed'
       } else if (updates.price !== undefined) {
         changeType = 'price_updated'
+      } else if (updates.name !== undefined) {
+        changeType = 'name_change'
       }
 
       addHistoryRecord({

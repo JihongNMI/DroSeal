@@ -23,6 +23,7 @@ public class InventoryItemService {
     private final InventoryItemRepository inventoryItemRepository;
     private final CollectionItemRepository collectionItemRepository;
     private final InventoryCategoryRepository inventoryCategoryRepository;
+    private final com.goodsplatform.repository.CollectionRepository collectionRepository;
 
     /**
      * 유저의 인벤토리 목록 페이징 조회
@@ -52,19 +53,31 @@ public class InventoryItemService {
             throw new IllegalArgumentException("도감 아이템을 선택하거나, 직접 이름을 입력해야 합니다.");
         }
 
-        // 3. 카테고리 검증
+        // 3. 컬렉션 검증
+        com.goodsplatform.entity.Collection collection = null;
+        if (request.getCollectionId() != null) {
+            collection = collectionRepository.findById(request.getCollectionId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 컬렉션입니다: " + request.getCollectionId()));
+        }
+
+        // 4. 카테고리 검증
         com.goodsplatform.entity.InventoryCategory category = null;
         if (request.getCategoryId() != null) {
             category = inventoryCategoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다: " + request.getCategoryId()));
         }
 
-        // 4. 인벤토리 아이템 생성 (regType에 따른 분기 로직은 향후 AI 연동 고도화 시 추가)
+        // 5. 수량 기본값 설정
+        Integer quantity = request.getQuantity() != null ? request.getQuantity() : 1;
+
+        // 6. 인벤토리 아이템 생성 (regType에 따른 분기 로직은 향후 AI 연동 고도화 시 추가)
         InventoryItem inventoryItem = InventoryItem.builder()
                 .user(user)
                 .item(masterItem)
+                .collection(collection)
                 .category(category)
                 .customName(request.getCustomName())
+                .quantity(quantity)
                 .regType(request.getRegType())
                 .aiConfidence(request.getAiConfidence())
                 .location(request.getLocation())
@@ -76,7 +89,7 @@ public class InventoryItemService {
 
         InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
 
-        // 5. 응답 DTO 변환 반환
+        // 7. 응답 DTO 변환 반환
         return InventoryItemResponseDto.from(savedItem);
     }
 
@@ -95,6 +108,13 @@ public class InventoryItemService {
         InventoryItem inventoryItem = inventoryItemRepository.findByInventoryIdAndUser(inventoryId, user)
                 .orElseThrow(() -> new IllegalArgumentException("접근 권한이 없거나 존재하지 않는 아이템입니다."));
 
+        // 컬렉션 업데이트
+        if (request.getCollectionId() != null) {
+            com.goodsplatform.entity.Collection collection = collectionRepository.findById(request.getCollectionId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 컬렉션입니다: " + request.getCollectionId()));
+            inventoryItem.setCollection(collection);
+        }
+
         // 카테고리 업데이트
         if (request.getCategoryId() != null) {
             com.goodsplatform.entity.InventoryCategory category = inventoryCategoryRepository.findById(request.getCategoryId())
@@ -102,12 +122,39 @@ public class InventoryItemService {
             inventoryItem.setCategory(category);
         }
 
-        // 노트 및 가격 업데이트
+        // 이름 업데이트
+        if (request.getCustomName() != null) {
+            inventoryItem.setCustomName(request.getCustomName());
+        }
+
+        // 수량 업데이트
+        if (request.getQuantity() != null) {
+            inventoryItem.setQuantity(request.getQuantity());
+        }
+
+        // 위치 업데이트
+        if (request.getLocation() != null) {
+            inventoryItem.setLocation(request.getLocation());
+        }
+
+        // 이미지 URL 업데이트
+        if (request.getUserImageUrl() != null) {
+            inventoryItem.setUserImageUrl(request.getUserImageUrl());
+        }
+
+        // 노트 업데이트
         if (request.getNote() != null) {
             inventoryItem.setNote(request.getNote());
         }
+
+        // 가격 업데이트
         if (request.getPurchasedPrice() != null) {
             inventoryItem.setPurchasedPrice(request.getPurchasedPrice());
+        }
+
+        // 구매 일자 업데이트
+        if (request.getPurchasedAt() != null) {
+            inventoryItem.setPurchasedAt(request.getPurchasedAt());
         }
 
         // @UpdateTimestamp가 있으므로 save 시 자동 갱신됨

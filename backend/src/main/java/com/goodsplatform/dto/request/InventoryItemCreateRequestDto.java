@@ -21,6 +21,11 @@ public class InventoryItemCreateRequestDto {
     private Long itemId;
 
     /**
+     * 도감 컬렉션 연결 (선택사항)
+     */
+    private Long collectionId;
+
+    /**
      * 카테고리 ID
      */
     private Long categoryId;
@@ -29,6 +34,12 @@ public class InventoryItemCreateRequestDto {
      * 미등록 굿즈일 경우 직접 작성하는 이름
      */
     private String customName;
+
+    /**
+     * 수량
+     */
+    @NotNull(message = "수량은 필수입니다.")
+    private Integer quantity;
 
     @NotNull(message = "등록 타입(AUTO/MANUAL)은 필수입니다.")
     private RegistrationType regType;

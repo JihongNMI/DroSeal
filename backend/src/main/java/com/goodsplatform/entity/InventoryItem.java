@@ -31,11 +31,18 @@ public class InventoryItem {
     private CollectionItem item;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "collection_id")
+    private Collection collection;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private InventoryCategory category;
 
     @Column(name = "custom_name", length = 100)
     private String customName;
+
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reg_type", nullable = false)

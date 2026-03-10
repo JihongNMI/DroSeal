@@ -18,12 +18,18 @@ public class InventoryItemResponseDto {
     private Long collectionItemId;
     private String collectionItemName;
 
+    // 도감 컬렉션 연결
+    private Long collectionId;
+    private String collectionName;
+
     // 카테고리 정보
     private Long categoryId;
     private String categoryName;
 
     // 미등록 시 직접 입력한 이름
     private String customName;
+
+    private Integer quantity;
 
     private RegistrationType regType;
     private BigDecimal aiConfidence;
@@ -47,6 +53,9 @@ public class InventoryItemResponseDto {
         String masterName = inventoryItem.getItem() != null ? inventoryItem.getItem().getName() : null;
         Long masterId = inventoryItem.getItem() != null ? inventoryItem.getItem().getItemId() : null;
         
+        Long collectionId = inventoryItem.getCollection() != null ? inventoryItem.getCollection().getCollectionId() : null;
+        String collectionName = inventoryItem.getCollection() != null ? inventoryItem.getCollection().getName() : null;
+        
         Long categoryId = inventoryItem.getCategory() != null ? inventoryItem.getCategory().getCategoryId() : null;
         String categoryName = inventoryItem.getCategory() != null ? inventoryItem.getCategory().getName() : null;
 
@@ -54,9 +63,12 @@ public class InventoryItemResponseDto {
                 .inventoryId(inventoryItem.getInventoryId())
                 .collectionItemId(masterId)
                 .collectionItemName(masterName)
+                .collectionId(collectionId)
+                .collectionName(collectionName)
                 .categoryId(categoryId)
                 .categoryName(categoryName)
                 .customName(inventoryItem.getCustomName())
+                .quantity(inventoryItem.getQuantity())
                 .regType(inventoryItem.getRegType())
                 .aiConfidence(inventoryItem.getAiConfidence())
                 .location(inventoryItem.getLocation())

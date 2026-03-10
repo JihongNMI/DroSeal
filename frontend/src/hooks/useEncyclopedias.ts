@@ -1,59 +1,62 @@
 import { useState, useEffect } from 'react'
-import { saveData, loadData } from '../services/localStorage'
-import { STORAGE_KEYS, DEBOUNCE_DELAY } from '../constants/storage'
-import type { EncyclopediaData } from '../types'
+import { fetchCollections, CollectionProgressResponseDto } from '../api/collection'
+import type { Encyclopedia } from '../types'
 
 interface UseEncyclopediasReturn {
-  data: EncyclopediaData
-  setData: (data: EncyclopediaData) => void
+  data: Encyclopedia[]
   loading: boolean
   error: string | null
+  refresh: () => Promise<void>
 }
 
 /**
- * Custom hook for managing encyclopedia data with automatic localStorage synchronization
+ * Custom hook for managing encyclopedia data from backend API
  * 
  * Features:
- * - Loads data from localStorage on mount
- * - Automatically saves changes to localStorage with 500ms debounce
+ * - Loads data from backend Collections API
+ * - Maps CollectionProgressResponseDto to Encyclopedia type
  * - Provides loading and error states
  * 
- * @returns Encyclopedia data, setter function, loading state, and error state
+ * @returns Encyclopedia data, loading state, error state, and refresh function
  */
 export function useEncyclopedias(): UseEncyclopediasReturn {
-  const [data, setData] = useState<EncyclopediaData>([])
+  const [data, setData] = useState<Encyclopedia[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load data from localStorage on mount
-  useEffect(() => {
+  const refresh = async () => {
     try {
-      const loadedData = loadData<EncyclopediaData>(STORAGE_KEYS.ENCYCLOPEDIAS)
-      if (loadedData) {
-        setData(loadedData)
-      }
-      setLoading(false)
+      setLoading(true)
+      console.log('[useEncyclopedias] Fetching collections from API...')
+      const response = await fetchCollections(0, 100)
+      console.log('[useEncyclopedias] API response:', response)
+      console.log('[useEncyclopedias] Number of collections:', response.content.length)
+      
+      // Map CollectionProgressResponseDto to Encyclopedia type
+      const encyclopedias: Encyclopedia[] = response.content.map((collection: CollectionProgressResponseDto) => ({
+        id: collection.collectionId.toString(),
+        title: collection.name,
+        description: collection.description || '',
+        items: [], // Encyclopedia type requires items array
+        createdAt: new Date(collection.createdAt),
+        updatedAt: new Date(collection.createdAt)
+      }))
+      
+      console.log('[useEncyclopedias] Mapped encyclopedias:', encyclopedias)
+      setData(encyclopedias)
+      setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load encyclopedias')
+      console.error('[useEncyclopedias] Failed to load encyclopedias from API', err)
+      setError('도감 데이터를 불러오는데 실패했습니다.')
+    } finally {
       setLoading(false)
     }
+  }
+
+  // Load data from API on mount
+  useEffect(() => {
+    refresh()
   }, [])
 
-  // Save data to localStorage with debounce
-  useEffect(() => {
-    if (loading) return // Don't save during initial load
-
-    const timeoutId = setTimeout(() => {
-      try {
-        saveData(STORAGE_KEYS.ENCYCLOPEDIAS, data)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save encyclopedias')
-      }
-    }, DEBOUNCE_DELAY)
-
-    return () => clearTimeout(timeoutId)
-  }, [data, loading])
-
-  return { data, setData, loading, error }
+  return { data, loading, error, refresh }
 }
