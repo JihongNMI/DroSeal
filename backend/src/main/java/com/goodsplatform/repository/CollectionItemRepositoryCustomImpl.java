@@ -2,6 +2,7 @@ package com.goodsplatform.repository;
 
 import com.goodsplatform.dto.request.ItemSearchCondition;
 import com.goodsplatform.entity.CollectionItem;
+import com.goodsplatform.entity.InventoryCategory;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.goodsplatform.entity.QCategory.category;
+import static com.goodsplatform.entity.QInventoryCategory.inventoryCategory;
 import static com.goodsplatform.entity.QCollection.collection;
 import static com.goodsplatform.entity.QCollectionItem.collectionItem;
 
@@ -30,7 +31,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
         List<CollectionItem> content = queryFactory
                 .selectFrom(collectionItem)
                 .leftJoin(collectionItem.collection, collection).fetchJoin()
-                .leftJoin(collection.category, category).fetchJoin()
+                .leftJoin(collection.InventoryCategory, inventoryCategory).fetchJoin()
                 .where(
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()))
@@ -44,7 +45,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
                 .select(collectionItem.count())
                 .from(collectionItem)
                 .leftJoin(collectionItem.collection, collection)
-                .leftJoin(collection.category, category)
+                .leftJoin(collection.InventoryCategory, inventoryCategory)
                 .where(
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()));
@@ -61,7 +62,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
             return null;
         }
         // Querydsl의 startsWith()는 내부적으로 LIKE '1/5%' 로 변환됨
-        return category.path.startsWith(pathPrefix);
+        return inventoryCategory.path.startsWith(pathPrefix);
     }
 
     /**

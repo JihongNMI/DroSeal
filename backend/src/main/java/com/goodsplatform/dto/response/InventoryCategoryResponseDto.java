@@ -1,6 +1,6 @@
 package com.goodsplatform.dto.response;
 
-import com.goodsplatform.entity.Category;
+import com.goodsplatform.entity.InventoryCategory;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
-public class CategoryResponseDto {
+public class InventoryCategoryResponseDto {
     private Long categoryId;
     private String name;
     private String path;
@@ -19,17 +19,17 @@ public class CategoryResponseDto {
     private LocalDateTime createdAt;
 
     @Builder.Default
-    private List<CategoryResponseDto> children = new ArrayList<>();
+    private List<InventoryCategoryResponseDto> children = new ArrayList<>();
 
-    public static CategoryResponseDto from(Category category) {
-        return CategoryResponseDto.builder()
+    public static InventoryCategoryResponseDto from(InventoryCategory category) {
+        return InventoryCategoryResponseDto.builder()
                 .categoryId(category.getCategoryId())
                 .name(category.getName())
                 .path(category.getPath())
                 .level(category.getLevel())
                 .createdAt(category.getCreatedAt())
                 .children(category.getChildren() != null ? category.getChildren().stream()
-                        .map(CategoryResponseDto::from)
+                        .map(InventoryCategoryResponseDto::from)
                         .collect(Collectors.toList()) : new ArrayList<>())
                 .build();
     }

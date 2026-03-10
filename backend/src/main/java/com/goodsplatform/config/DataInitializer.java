@@ -1,8 +1,8 @@
 package com.goodsplatform.config;
 
 import com.goodsplatform.entity.User;
-import com.goodsplatform.entity.Category;
-import com.goodsplatform.repository.CategoryRepository;
+import com.goodsplatform.entity.InventoryCategory;
+import com.goodsplatform.repository.InventoryCategoryRepository;
 import com.goodsplatform.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataInitializer {
 
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
+    private final InventoryCategoryRepository InventoryCategoryRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
@@ -47,15 +47,15 @@ public class DataInitializer {
          */
 
         // 기본 제공 카테고리 자동화 (DB가 비어있을 경우)
-        if (categoryRepository.count() == 0) {
+        if (InventoryCategoryRepository.count() == 0) {
             String[] defaultCategories = { "씰", "카드", "굿즈", "피규어", "책", "기본" };
             for (String categoryName : defaultCategories) {
-                Category category = Category.builder()
+                InventoryCategory category = InventoryCategory.builder()
                         .name(categoryName)
                         .level(1)
                         .path("")
                         .build();
-                categoryRepository.save(category);
+                InventoryCategoryRepository.save(category);
 
                 // path 설정
                 category.setPath(String.valueOf(category.getCategoryId()));

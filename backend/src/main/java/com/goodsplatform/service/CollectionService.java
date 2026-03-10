@@ -2,10 +2,10 @@ package com.goodsplatform.service;
 
 import com.goodsplatform.dto.request.CollectionCreateRequestDto;
 import com.goodsplatform.dto.response.CollectionProgressResponseDto;
-import com.goodsplatform.entity.Category;
+import com.goodsplatform.entity.InventoryCategory;
 import com.goodsplatform.entity.Collection;
 import com.goodsplatform.entity.User;
-import com.goodsplatform.repository.CategoryRepository;
+import com.goodsplatform.repository.InventoryCategoryRepository;
 import com.goodsplatform.repository.CollectionItemRepository;
 import com.goodsplatform.repository.CollectionRepository;
 import com.goodsplatform.repository.InventoryItemRepository;
@@ -23,20 +23,20 @@ public class CollectionService {
     private final CollectionRepository collectionRepository;
     private final CollectionItemRepository collectionItemRepository;
     private final InventoryItemRepository inventoryItemRepository;
-    private final CategoryRepository categoryRepository;
+    private final InventoryCategoryRepository InventoryCategoryRepository;
 
     /**
      * 새로운 도감(Collection) 생성
      */
     @Transactional
     public CollectionProgressResponseDto createCollection(User user, CollectionCreateRequestDto request) {
-        Category category = categoryRepository.findById(request.getCategoryId())
+        InventoryCategory category = InventoryCategoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         Collection collection = Collection.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .category(category)
+                .InventoryCategory(category)
                 .isOfficial(request.getIsOfficial() != null ? request.getIsOfficial() : false)
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
                 .gridX(request.getGridX() != null ? request.getGridX() : 5)

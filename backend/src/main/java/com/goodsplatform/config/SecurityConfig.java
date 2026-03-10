@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/v1/categories/**").permitAll()
+                        .requestMatchers("/api/v1/inventory-categories/**").permitAll()
                         .requestMatchers("/api/v1/inventory/**").permitAll()
                         .requestMatchers("/api/v1/accounting/**").permitAll()
                         .requestMatchers("/api/v1/collections/**").permitAll()

@@ -22,7 +22,7 @@ public class Collection {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    private InventoryCategory InventoryCategory;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;

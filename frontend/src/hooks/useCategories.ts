@@ -1,33 +1,32 @@
 import { useState, useEffect, useCallback } from 'react'
-import { saveData, loadData, isStorageNearQuota } from '../services/localStorage'
-import { STORAGE_KEYS, DEBOUNCE_DELAY } from '../constants/storage'
+import { fetchCategoryTree, createCategory as apiCreateCategory, updateCategory as apiUpdateCategory, deleteCategory as apiDeleteCategory } from '../api/category'
+import { categoryTreeToFlat, categoryToCreateRequest, categoryToUpdateRequest } from '../adapters/categoryAdapter'
 import { validateCategoryName, isDescendant } from '../services/categoryService'
-import type { InventoryCategory, InventoryItem } from '../types'
+import type { InventoryCategory } from '../types'
 
 const UNCATEGORIZED_ID = 'uncategorized'
 
 interface UseCategoriesReturn {
   categories: InventoryCategory[]
   uncategorizedId: string
-  addCategory: (name: string, parentId?: string) => void
-  updateCategory: (id: string, updates: Partial<InventoryCategory>) => void
-  deleteCategory: (id: string) => void
+  addCategory: (name: string, parentId?: string) => Promise<void>
+  updateCategory: (id: string, updates: Partial<InventoryCategory>) => Promise<void>
+  deleteCategory: (id: string) => Promise<void>
   loading: boolean
   error: string | null
-  storageWarning: string | null
 }
 
 /**
- * Custom hook for managing hierarchical categories with localStorage persistence
+ * Custom hook for managing hierarchical categories with backend API
  * 
  * Features:
+ * - Fetches categories from backend API
  * - Auto-creates Uncategorized category ('미분류') if no categories exist
  * - Prevents deletion of Uncategorized category
  * - Validates category names (no duplicates under same parent)
  * - Prevents circular references when updating parent
  * - Handles item reassignment when deleting categories with items
  * - Handles child category reassignment when deleting categories with children
- * - Uses debounced save to localStorage (500ms delay)
  * 
  * @returns Categories array, CRUD functions, loading state, and error state
  */
@@ -35,24 +34,17 @@ export function useCategories(): UseCategoriesReturn {
   const [categories, setCategories] = useState<InventoryCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [storageWarning, setStorageWarning] = useState<string | null>(null)
 
-  // Check storage quota on mount and after saves
-  useEffect(() => {
-    if (isStorageNearQuota()) {
-      setStorageWarning('저장 공간이 부족합니다. 오래된 이력을 정리하는 것을 권장합니다.')
-    } else {
-      setStorageWarning(null)
-    }
-  }, [categories])
-
-  // Load categories from localStorage on mount
-  useEffect(() => {
+  // Load categories from backend on mount
+  const loadCategories = useCallback(async () => {
     try {
-      const loadedCategories = loadData<InventoryCategory[]>(STORAGE_KEYS.INVENTORY_CATEGORIES)
+      setLoading(true)
+      const categoryTree = await fetchCategoryTree()
+      const flatCategories = categoryTreeToFlat(categoryTree)
       
-      // If no categories exist, create Uncategorized category
-      if (!loadedCategories || loadedCategories.length === 0) {
+      // Ensure Uncategorized category exists
+      const hasUncategorized = flatCategories.some(cat => cat.id === UNCATEGORIZED_ID)
+      if (!hasUncategorized) {
         const uncategorized: InventoryCategory = {
           id: UNCATEGORIZED_ID,
           name: '미분류',
@@ -60,24 +52,12 @@ export function useCategories(): UseCategoriesReturn {
           createdAt: new Date(),
           updatedAt: new Date()
         }
-        setCategories([uncategorized])
+        setCategories([uncategorized, ...flatCategories])
       } else {
-        // Ensure Uncategorized category exists
-        const hasUncategorized = loadedCategories.some(cat => cat.id === UNCATEGORIZED_ID)
-        if (!hasUncategorized) {
-          const uncategorized: InventoryCategory = {
-            id: UNCATEGORIZED_ID,
-            name: '미분류',
-            parentId: undefined,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-          setCategories([uncategorized, ...loadedCategories])
-        } else {
-          setCategories(loadedCategories)
-        }
+        setCategories(flatCategories)
       }
       
+      setError(null)
       setLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load categories')
@@ -85,30 +65,9 @@ export function useCategories(): UseCategoriesReturn {
     }
   }, [])
 
-  // Save categories to localStorage with debounce
   useEffect(() => {
-    if (loading) return // Don't save during initial load
-
-    const timeoutId = setTimeout(() => {
-      try {
-        saveData(STORAGE_KEYS.INVENTORY_CATEGORIES, categories)
-        setError(null)
-      } catch (err) {
-        if (err instanceof Error) {
-          // Check if it's a quota exceeded error
-          if (err.message.includes('quota exceeded') || err.message.includes('QuotaExceededError')) {
-            setError('저장 공간이 부족합니다. 오래된 이력을 정리하거나 일부 데이터를 삭제해주세요.')
-          } else {
-            setError(err.message)
-          }
-        } else {
-          setError('Failed to save categories')
-        }
-      }
-    }, DEBOUNCE_DELAY)
-
-    return () => clearTimeout(timeoutId)
-  }, [categories, loading])
+    loadCategories()
+  }, [loadCategories])
 
   /**
    * Add a new category with validation
@@ -117,7 +76,7 @@ export function useCategories(): UseCategoriesReturn {
    * @param parentId - Optional parent category ID (undefined for top-level)
    * @throws Error if name is invalid or duplicate under same parent
    */
-  const addCategory = useCallback((name: string, parentId?: string) => {
+  const addCategory = useCallback(async (name: string, parentId?: string) => {
     // Validate name is not empty
     if (!name.trim()) {
       throw new Error('Category name cannot be empty')
@@ -128,16 +87,16 @@ export function useCategories(): UseCategoriesReturn {
       throw new Error('같은 위치에 동일한 이름의 카테고리가 이미 존재합니다.')
     }
 
-    const newCategory: InventoryCategory = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      parentId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    try {
+      const request = categoryToCreateRequest({ name: name.trim(), parentId })
+      await apiCreateCategory(request)
+      
+      // Reload categories from backend
+      await loadCategories()
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to add category')
     }
-
-    setCategories(prev => [...prev, newCategory])
-  }, [categories])
+  }, [categories, loadCategories])
 
   /**
    * Update an existing category with circular reference check
@@ -146,7 +105,7 @@ export function useCategories(): UseCategoriesReturn {
    * @param updates - Partial category updates
    * @throws Error if update would create circular reference or duplicate name
    */
-  const updateCategory = useCallback((id: string, updates: Partial<InventoryCategory>) => {
+  const updateCategory = useCallback(async (id: string, updates: Partial<InventoryCategory>) => {
     // Prevent updating Uncategorized category's parentId
     if (id === UNCATEGORIZED_ID && updates.parentId !== undefined) {
       throw new Error('Cannot change parent of Uncategorized category')
@@ -177,26 +136,37 @@ export function useCategories(): UseCategoriesReturn {
       }
     }
 
-    setCategories(prev =>
-      prev.map(cat =>
-        cat.id === id
-          ? { ...cat, ...updates, updatedAt: new Date() }
-          : cat
-      )
-    )
-  }, [categories])
+    try {
+      const category = categories.find(cat => cat.id === id)
+      if (!category) {
+        throw new Error('Category not found')
+      }
+
+      const request = categoryToUpdateRequest({
+        name: updates.name || category.name,
+        parentId: updates.parentId !== undefined ? updates.parentId : category.parentId
+      })
+      
+      await apiUpdateCategory(parseInt(id), request)
+      
+      // Reload categories from backend
+      await loadCategories()
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to update category')
+    }
+  }, [categories, loadCategories])
 
   /**
    * Delete a category with item and child reassignment
    * 
-   * - Items in the deleted category are reassigned to Uncategorized
-   * - Child categories are reassigned to the deleted category's parent
+   * - Items in the deleted category are reassigned to Uncategorized (handled by backend)
+   * - Child categories are reassigned to the deleted category's parent (handled by backend)
    * - Cannot delete Uncategorized category
    * 
    * @param id - Category ID to delete
    * @throws Error if attempting to delete Uncategorized category
    */
-  const deleteCategory = useCallback((id: string) => {
+  const deleteCategory = useCallback(async (id: string) => {
     // Prevent deletion of Uncategorized category
     if (id === UNCATEGORIZED_ID) {
       throw new Error('Cannot delete Uncategorized category')
@@ -207,33 +177,15 @@ export function useCategories(): UseCategoriesReturn {
       throw new Error('Category not found')
     }
 
-    // Reassign items to Uncategorized
-    const items = loadData<InventoryItem[]>(STORAGE_KEYS.INVENTORY_ITEMS) || []
-    const updatedItems = items.map(item =>
-      item.categoryId === id
-        ? { ...item, categoryId: UNCATEGORIZED_ID, updatedAt: new Date() }
-        : item
-    )
-    saveData(STORAGE_KEYS.INVENTORY_ITEMS, updatedItems)
-
-    // Reassign child categories to parent (or top-level if no parent)
-    setCategories(prev => {
-      // Remove the deleted category and update children
-      return prev
-        .filter(cat => cat.id !== id)
-        .map(cat => {
-          // If this is a direct child of the deleted category
-          if (cat.parentId === id) {
-            return {
-              ...cat,
-              parentId: categoryToDelete.parentId, // Inherit parent's parent
-              updatedAt: new Date()
-            }
-          }
-          return cat
-        })
-    })
-  }, [categories])
+    try {
+      await apiDeleteCategory(parseInt(id))
+      
+      // Reload categories from backend
+      await loadCategories()
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to delete category')
+    }
+  }, [categories, loadCategories])
 
   return {
     categories,
@@ -243,6 +195,5 @@ export function useCategories(): UseCategoriesReturn {
     deleteCategory,
     loading,
     error,
-    storageWarning
   }
 }

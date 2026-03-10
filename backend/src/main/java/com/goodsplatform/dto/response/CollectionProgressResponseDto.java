@@ -28,8 +28,8 @@ public class CollectionProgressResponseDto {
     public static CollectionProgressResponseDto from(Collection collection, int total, int collected) {
         return CollectionProgressResponseDto.builder()
                 .collectionId(collection.getCollectionId())
-                .categoryId(collection.getCategory().getCategoryId())
-                .categoryName(collection.getCategory().getName())
+                .categoryId(collection.getInventoryCategory().getCategoryId())
+                .categoryName(collection.getInventoryCategory().getName())
                 .name(collection.getName())
                 .description(collection.getDescription())
                 .isOfficial(collection.getIsOfficial())
