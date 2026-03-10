@@ -26,8 +26,21 @@ export function ImageEditModal({ currentImageUrl, itemName, onSave, onCancel }: 
     }
   }
 
-  const handleSave = () => {
-    onSave(imageUrl || undefined)
+  const handleSave = async () => {
+    let finalImageUrl = imageUrl
+
+    if (imageInputType === 'upload' && imageFile) {
+      try {
+        const { uploadImage } = await import('../../api/upload')
+        finalImageUrl = await uploadImage(imageFile)
+      } catch (error) {
+        console.error('Failed to upload image:', error)
+        alert('이미지 업로드에 실패했습니다.')
+        return
+      }
+    }
+
+    onSave(finalImageUrl || undefined)
   }
 
   const handleRemove = () => {
@@ -86,9 +99,9 @@ export function ImageEditModal({ currentImageUrl, itemName, onSave, onCancel }: 
           {imageUrl && (
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">미리보기</label>
-              <img 
-                src={imageUrl} 
-                alt="미리보기" 
+              <img
+                src={imageUrl}
+                alt="미리보기"
                 className="w-full max-h-64 object-contain rounded border"
                 onError={() => setImageUrl('')}
               />

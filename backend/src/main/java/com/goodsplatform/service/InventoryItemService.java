@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -70,7 +71,8 @@ public class InventoryItemService {
         // 5. 수량 기본값 설정
         Integer quantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
-        // 6. 인벤토리 아이템 생성 (regType에 따른 분기 로직은 향후 AI 연동 고도화 시 추가)
+        log.info("인벤토리 아이템 생성: user={}, itemId={}, imageUrl={}", user.getUsername(), request.getItemId(),
+                request.getUserImageUrl());
         InventoryItem inventoryItem = InventoryItem.builder()
                 .user(user)
                 .item(masterItem)
@@ -106,7 +108,10 @@ public class InventoryItemService {
     public InventoryItemResponseDto updateInventoryItemNoteAndPrice(User user, Long inventoryId,
             com.goodsplatform.dto.request.InventoryItemUpdateRequestDto request) {
         InventoryItem inventoryItem = inventoryItemRepository.findByInventoryIdAndUser(inventoryId, user)
-                .orElseThrow(() -> new IllegalArgumentException("접근 권한이 없거나 존재하지 않는 아이템입니다."));
+                .orElseThrow(() -> {
+                    log.error("인벤토리 아이템 수정 권한 없음 또는 존재하지 않음: inventoryId={}, userId={}", inventoryId, user.getUserId());
+                    return new IllegalArgumentException("해당 아이템에 대한 수정 권한이 없거나 아이템이 존재하지 않습니다.");
+                });
 
         // 컬렉션 업데이트
         if (request.getCollectionId() != null) {
@@ -117,7 +122,8 @@ public class InventoryItemService {
 
         // 카테고리 업데이트
         if (request.getCategoryId() != null) {
-            com.goodsplatform.entity.InventoryCategory category = inventoryCategoryRepository.findById(request.getCategoryId())
+            com.goodsplatform.entity.InventoryCategory category = inventoryCategoryRepository
+                    .findById(request.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다: " + request.getCategoryId()));
             inventoryItem.setCategory(category);
         }
@@ -139,6 +145,7 @@ public class InventoryItemService {
 
         // 이미지 URL 업데이트
         if (request.getUserImageUrl() != null) {
+            log.info("인벤토리 아이템 이미지 업데이트 시도: inventoryId={}, imageUrl={}", inventoryId, request.getUserImageUrl());
             inventoryItem.setUserImageUrl(request.getUserImageUrl());
         }
 
@@ -157,8 +164,9 @@ public class InventoryItemService {
             inventoryItem.setPurchasedAt(request.getPurchasedAt());
         }
 
-        // @UpdateTimestamp가 있으므로 save 시 자동 갱신됨
-        return InventoryItemResponseDto.from(inventoryItem);
+        // 명시적 저장 호출 (Dirty Checking 보조 및 즉각적인 반영 확인용)
+        InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
+        return InventoryItemResponseDto.from(savedItem);
     }
 
     /**

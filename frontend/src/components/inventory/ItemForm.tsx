@@ -48,7 +48,7 @@ export function ItemForm({
   const [quantity, setQuantity] = useState(item?.quantity || 1)
   const [price, setPrice] = useState<string>(item?.price?.toString() || '')
   const [date, setDate] = useState<string>(
-    item?.date 
+    item?.date
       ? new Date(item.date).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0]
   )
@@ -80,7 +80,7 @@ export function ItemForm({
       setCategoryId(item.categoryId || uncategorizedId)
       setQuantity(item.quantity || 1)
       setPrice(item.price?.toString() || '')
-      
+
       // date 필드 처리 - 없으면 현재 날짜 사용
       if (item.date) {
         try {
@@ -92,7 +92,7 @@ export function ItemForm({
       } else {
         setDate(new Date().toISOString().split('T')[0])
       }
-      
+
       setEncyclopediaId(item.encyclopediaId || '')
       setNotes(item.notes || '')
       setImageUrl(item.imageUrl || '')
@@ -122,11 +122,25 @@ export function ItemForm({
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) {
       return
+    }
+
+    let finalImageUrl = imageUrl
+
+    // If there's a file to upload
+    if (imageInputType === 'upload' && imageFile) {
+      try {
+        const { uploadImage } = await import('../../api/upload')
+        finalImageUrl = await uploadImage(imageFile)
+      } catch (error) {
+        console.error('Failed to upload image:', error)
+        alert('이미지 업로드에 실패했습니다.')
+        return
+      }
     }
 
     const itemData: Partial<InventoryItem> = {
@@ -137,7 +151,7 @@ export function ItemForm({
       date: new Date(date),
       encyclopediaId: encyclopediaId || undefined,
       notes: notes.trim(),
-      imageUrl: imageUrl || undefined
+      imageUrl: finalImageUrl || undefined
     }
 
     onSubmit(itemData)
@@ -161,9 +175,8 @@ export function ItemForm({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="아이템 이름"
             />
             {errors.name && (
@@ -200,9 +213,8 @@ export function ItemForm({
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.quantity ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.quantity ? 'border-red-500' : 'border-gray-300'
+                }`}
               min="0"
             />
             {errors.quantity && (
@@ -221,9 +233,8 @@ export function ItemForm({
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.price ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.price ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="가격 (선택사항)"
               min="0"
             />
@@ -271,7 +282,7 @@ export function ItemForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               이미지 (선택사항)
             </label>
-            
+
             {/* Image input type selector */}
             <div className="flex gap-4 mb-2">
               <label className="flex items-center">
@@ -316,9 +327,9 @@ export function ItemForm({
             {/* Image preview */}
             {imageUrl && (
               <div className="mt-2">
-                <img 
-                  src={imageUrl} 
-                  alt="미리보기" 
+                <img
+                  src={imageUrl}
+                  alt="미리보기"
                   className="w-32 h-32 object-cover rounded border"
                   onError={() => setImageUrl('')}
                 />

@@ -89,7 +89,8 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         note: item.notes,
         purchasedPrice: item.price,
         purchasedAt: item.date ? new Date(item.date).toISOString() : undefined,
-        location: item.location
+        location: item.location,
+        userImageUrl: item.imageUrl
       })
 
       addHistoryRecord({
@@ -110,25 +111,25 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
   const updateItem = useCallback(async (id: string, updates: any) => {
     try {
       setLoading(true)
-      
+
       // 현재 아이템 정보 가져오기
       const currentItem = data.items.find(item => item.id === id)
       const itemName = updates.name || currentItem?.name || 'Unknown Item'
-      
+
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
         const request: any = {}
-        
+
         // collectionId 변환
         if (updates.encyclopediaId !== undefined) {
           request.collectionId = updates.encyclopediaId ? parseInt(updates.encyclopediaId) : null
         }
-        
+
         // categoryId 변환
         if (updates.categoryId !== undefined) {
           request.categoryId = updates.categoryId !== 'uncategorized' ? parseInt(updates.categoryId) : null
         }
-        
+
         // 다른 필드들 매핑
         if (updates.name !== undefined) request.customName = updates.name
         if (updates.quantity !== undefined) request.quantity = updates.quantity
@@ -140,7 +141,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
           const dateValue = updates.date instanceof Date ? updates.date : new Date(updates.date)
           request.purchasedAt = dateValue.toISOString()
         }
-        
+
         await apiUpdateInventoryItem(numericId, request)
       }
 

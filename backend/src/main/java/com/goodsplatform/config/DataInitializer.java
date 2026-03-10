@@ -31,7 +31,8 @@ public class DataInitializer {
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY inventory_id BIGINT NULL");
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY seller_id BIGINT NULL");
             jdbcTemplate.execute("ALTER TABLE Collections MODIFY category_id BIGINT NULL");
-            log.info("Transactions 및 Collections 테이블의 제약조건이 정상 변경됨.");
+            jdbcTemplate.execute("ALTER TABLE InventoryItems MODIFY user_image_url VARCHAR(1024)");
+            log.info("테이블 제약조건 및 컬럼 길이가 정상 변경됨.");
         } catch (Exception e) {
             log.warn("테이블 ALTER 실패 (테이블 미생성 혹은 이미 반영됨): {}", e.getMessage());
         }

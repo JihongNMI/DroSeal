@@ -38,6 +38,8 @@ public class InventoryItemController {
                                 .orElseGet(() -> userRepository.findAll().stream().findFirst()
                                                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.")));
 
+                System.out.println("아이템 추가 요청 수신: itemId=" + request.getItemId() + ", userImageUrl="
+                                + request.getUserImageUrl());
                 InventoryItemResponseDto response = inventoryItemService.addInventoryItem(mockUser, request);
                 return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
@@ -84,6 +86,8 @@ public class InventoryItemController {
                                 .orElseGet(() -> userRepository.findAll().stream().findFirst()
                                                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.")));
 
+                System.out.println("아이템 수정 요청 수신: inventoryId=" + inventoryId + ", userImageUrl="
+                                + request.getUserImageUrl());
                 InventoryItemResponseDto response = inventoryItemService.updateInventoryItemNoteAndPrice(mockUser,
                                 inventoryId, request);
                 return ResponseEntity.ok(response);

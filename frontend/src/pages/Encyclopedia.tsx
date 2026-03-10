@@ -267,6 +267,7 @@ export default function Encyclopedia(): JSX.Element {
         categoryId: selectedAlbum.categoryId,
         regType: 'MANUAL',
         quantity: 1, // 수량 필수값 추가
+        userImageUrl: finalImageUrl || undefined,
         note: cardNote,
         purchasedPrice: cardPrice === '' ? 0 : Number(cardPrice)
       })

@@ -54,7 +54,7 @@ public class InventoryItem {
     @Column(name = "location", length = 100)
     private String location;
 
-    @Column(name = "user_image_url", length = 255)
+    @Column(name = "user_image_url", length = 1024)
     private String userImageUrl;
 
     @Column(name = "note", columnDefinition = "TEXT")

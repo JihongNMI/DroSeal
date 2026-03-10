@@ -57,6 +57,7 @@ public class InventoryItemCreateRequestDto {
     /**
      * 유저가 직접 업로드한 실물 사진 URL
      */
+    @com.fasterxml.jackson.annotation.JsonProperty("userImageUrl")
     private String userImageUrl;
 
     /**
@@ -72,5 +73,6 @@ public class InventoryItemCreateRequestDto {
     /**
      * 구매 일자
      */
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime purchasedAt;
 }
