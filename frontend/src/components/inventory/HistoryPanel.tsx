@@ -80,10 +80,12 @@ export function HistoryPanel({ itemId, categoryId, history, items }: HistoryPane
       return `메모 변경: "${prevNotes}" → "${newNotes}"`
     } else if (record.changeType === 'name_change') {
       return `이름 변경: "${record.previousName}" → "${record.newName}"`
-    } else if (record.changeType === 'price_change') {
+    } else if (record.changeType === 'price_change' || record.changeType === 'price_updated') {
       const prevPrice = record.previousPrice !== undefined ? `₩${record.previousPrice.toLocaleString()}` : '(없음)'
       const newPrice = record.newPrice !== undefined ? `₩${record.newPrice.toLocaleString()}` : '(없음)'
       return `가격 변경: ${prevPrice} → ${newPrice}`
+    } else if (record.changeType === 'category_changed') {
+      return '카테고리 변경됨'
     } else if (record.changeType === 'item_deleted') {
       return `아이템 삭제 (수량: ${record.previousQuantity})`
     }

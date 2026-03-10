@@ -51,7 +51,7 @@ export interface InventoryState {
 }
 
 // History tracking for inventory changes
-export type HistoryChangeType = 'item_created' | 'quantity_change' | 'notes_change' | 'name_change' | 'price_change' | 'item_deleted' | 'item_updated'
+export type HistoryChangeType = 'item_created' | 'quantity_change' | 'notes_change' | 'name_change' | 'price_change' | 'category_changed' | 'price_updated' | 'item_deleted' | 'item_updated'
 
 export interface HistoryRecord {
   id: string

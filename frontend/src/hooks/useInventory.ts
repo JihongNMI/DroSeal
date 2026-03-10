@@ -105,6 +105,11 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
   const updateItem = useCallback(async (id: string, updates: any) => {
     try {
       setLoading(true)
+      
+      // 현재 아이템 정보 가져오기
+      const currentItem = data.items.find(item => item.id === id)
+      const itemName = currentItem?.name || 'Unknown Item'
+      
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
         const request: any = {}
@@ -121,10 +126,18 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         await apiUpdateInventoryItem(numericId, request)
       }
 
+      // 변경 타입 결정
+      let changeType: 'item_updated' | 'category_changed' | 'price_updated' = 'item_updated'
+      if (updates.categoryId !== undefined) {
+        changeType = 'category_changed'
+      } else if (updates.price !== undefined) {
+        changeType = 'price_updated'
+      }
+
       addHistoryRecord({
         itemId: id,
-        itemName: updates.name || 'Updated Item',
-        changeType: 'item_updated'
+        itemName: itemName,
+        changeType: changeType
       })
 
       await refresh()
@@ -134,7 +147,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
     } finally {
       setLoading(false)
     }
-  }, [refresh, addHistoryRecord])
+  }, [data.items, refresh, addHistoryRecord])
 
   const deleteItem = useCallback(async (id: string) => {
     try {
