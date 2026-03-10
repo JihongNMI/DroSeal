@@ -24,43 +24,69 @@ public class DataInitializer {
     @PostConstruct
     @Transactional
     public void init() {
+        log.info("DataInitializer 실행 시작...");
+
+        // 1. 테이블 구조 보정 (ALTER)
         try {
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY inventory_id BIGINT NULL");
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY seller_id BIGINT NULL");
             log.info("Transactions 테이블의 inventory_id 및 seller_id 제약조건이 NULL 허용으로 정상 변경됨.");
         } catch (Exception e) {
-            log.warn("테이블 ALTER 실패 (이미 적용됐거나 테이블이 생성 전일 수 있음): {}", e.getMessage());
+            log.warn("Transactions 테이블 ALTER 실패 (테이블 미생성 혹은 이미 반영됨): {}", e.getMessage());
         }
 
-        // 테스트용 Mock User 생성 로직은 실제 운영을 위해 주석 처리함
-        /*
-         * if (userRepository.findById(1L).isEmpty() &&
-         * userRepository.findByUsername("testUser").isEmpty()) {
-         * User testUser = User.builder()
-         * .username("testUser")
-         * .email("test@example.com")
-         * .passwordHash(passwordEncoder.encode("1234"))
-         * .build();
-         * userRepository.save(testUser);
-         * log.info("테스트용 Mock User(testUser)가 생성되었습니다. (비밀번호: 1234)");
-         * }
-         */
-
-        // 기본 제공 카테고리 자동화 (DB가 비어있을 경우)
-        if (InventoryCategoryRepository.count() == 0) {
-            String[] defaultCategories = { "씰", "카드", "굿즈", "피규어", "책", "기본" };
-            for (String categoryName : defaultCategories) {
-                InventoryCategory category = InventoryCategory.builder()
-                        .name(categoryName)
-                        .level(1)
-                        .path("")
+        // 2. 테스트용 Mock User 생성 (주석 해제 및 안전하게 실행)
+        try {
+            if (userRepository.findById(1L).isEmpty() &&
+                    userRepository.findByUsername("testUser").isEmpty()) {
+                User testUser = User.builder()
+                        .username("testUser")
+                        .email("test@example.com")
+                        .passwordHash(passwordEncoder.encode("1234"))
                         .build();
-                InventoryCategoryRepository.save(category);
-
-                // path 설정
-                category.setPath(String.valueOf(category.getCategoryId()));
+                userRepository.save(testUser);
+                log.info("테스트용 Mock User(testUser)가 생성되었습니다. (비밀번호: 1234)");
             }
-            log.info("기본 제공 카테고리가 자동으로 생성되었습니다.");
+        } catch (Exception e) {
+            log.warn("Mock User 생성 실패 (Users 테이블이 아직 생성되지 않았을 수 있음): {}", e.getMessage());
         }
+
+        // 3. 기본 제공 카테고리 자동화
+        try {
+            if (InventoryCategoryRepository.count() == 0) {
+                String[] defaultCategories = { "씰", "카드", "굿즈", "피규어", "책", "기본" };
+                for (String categoryName : defaultCategories) {
+                    InventoryCategory category = InventoryCategory.builder()
+                            .name(categoryName)
+                            .level(1)
+                            .path("")
+                            .build();
+                    InventoryCategoryRepository.save(category);
+
+                    // path 설정
+                    category.setPath(String.valueOf(category.getCategoryId()));
+                    InventoryCategoryRepository.save(category);
+                }
+                log.info("기본 제공 카테고리가 자동으로 생성되었습니다.");
+            }
+        } catch (Exception e) {
+            log.warn("기본 카테고리 생성 중 오류 발생 (테이블이 아직 생성되지 않았을 수 있음): {}", e.getMessage());
+        }
+
+        // 4. 기존 컬렉션 카테고리 마이그레이션 (ManyToOne -> ManyToMany)
+        try {
+            int migratedCount = jdbcTemplate.update(
+                    "INSERT INTO Collections_Categories (collection_id, category_id) " +
+                            "SELECT collection_id, category_id FROM Collections " +
+                            "WHERE category_id IS NOT NULL " +
+                            "AND collection_id NOT IN (SELECT DISTINCT collection_id FROM Collections_Categories)");
+            if (migratedCount > 0) {
+                log.info("기존 도감 데이터 {}건의 카테고리 정보가 성공적으로 마이그레이션되었습니다.", migratedCount);
+            }
+        } catch (Exception e) {
+            log.debug("기존 카테고리 마이그레이션 스킵 (이미 처리되었거나 컬럼이 없음): {}", e.getMessage());
+        }
+
+        log.info("DataInitializer 실행 종료.");
     }
 }

@@ -1,62 +1,75 @@
-import { useState, useEffect } from 'react'
-import { fetchCollections, CollectionProgressResponseDto } from '../api/collection'
-import type { Encyclopedia } from '../types'
+import { useState, useEffect, useCallback } from 'react'
+import { fetchCollections, createCollection as apiCreateCollection } from '../api/collection'
+import type { EncyclopediaData, Encyclopedia } from '../types'
 
 interface UseEncyclopediasReturn {
-  data: Encyclopedia[]
+  data: EncyclopediaData
   loading: boolean
   error: string | null
+  addCollection: (name: string, categoryId: number, description?: string) => Promise<void>
   refresh: () => Promise<void>
 }
 
 /**
- * Custom hook for managing encyclopedia data from backend API
+ * Custom hook for managing encyclopedia data with backend API integration
  * 
  * Features:
- * - Loads data from backend Collections API
- * - Maps CollectionProgressResponseDto to Encyclopedia type
- * - Provides loading and error states
- * 
- * @returns Encyclopedia data, loading state, error state, and refresh function
+ * - Fetches collections from backend API
+ * - Provides add functionality with individual refresh
+ * - Handles loading and error states for API transactions
  */
 export function useEncyclopedias(): UseEncyclopediasReturn {
-  const [data, setData] = useState<Encyclopedia[]>([])
+  const [data, setData] = useState<EncyclopediaData>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('[useEncyclopedias] Fetching collections from API...')
-      const response = await fetchCollections(0, 100)
-      console.log('[useEncyclopedias] API response:', response)
-      console.log('[useEncyclopedias] Number of collections:', response.content.length)
-      
-      // Map CollectionProgressResponseDto to Encyclopedia type
-      const encyclopedias: Encyclopedia[] = response.content.map((collection: CollectionProgressResponseDto) => ({
-        id: collection.collectionId.toString(),
-        title: collection.name,
-        description: collection.description || '',
-        items: [], // Encyclopedia type requires items array
-        createdAt: new Date(collection.createdAt),
-        updatedAt: new Date(collection.createdAt)
+      const response = await fetchCollections(0, 50) // Adjust page/size as needed
+
+      // Map API CollectionProgressResponseDto to the app's internal Encyclopedia interface
+      const mappedData: Encyclopedia[] = response.content.map(dto => ({
+        id: dto.collectionId.toString(),
+        title: dto.name,
+        description: dto.description || '',
+        items: [], // Items are loaded separately via Encyclopedia.tsx when an album is opened
+        createdAt: new Date(dto.createdAt),
+        updatedAt: new Date(dto.createdAt) // Fallback as updatedAt might be missing
       }))
-      
-      console.log('[useEncyclopedias] Mapped encyclopedias:', encyclopedias)
-      setData(encyclopedias)
+
+      setData(mappedData)
       setError(null)
     } catch (err) {
-      console.error('[useEncyclopedias] Failed to load encyclopedias from API', err)
+      console.error('Failed to load collections', err)
       setError('도감 데이터를 불러오는데 실패했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  const addCollection = async (name: string, categoryId: number, description?: string) => {
+    try {
+      setLoading(true)
+      await apiCreateCollection({
+        name,
+        categoryId,
+        description,
+        gridX: 9, // Default grid size for Encyclopedia
+        gridY: 10
+      })
+      await refresh()
+    } catch (err) {
+      setError('도감 생성에 실패했습니다.')
+      throw err
     } finally {
       setLoading(false)
     }
   }
 
-  // Load data from API on mount
-  useEffect(() => {
-    refresh()
-  }, [])
-
-  return { data, loading, error, refresh }
+  return { data, loading, error, addCollection, refresh }
 }
