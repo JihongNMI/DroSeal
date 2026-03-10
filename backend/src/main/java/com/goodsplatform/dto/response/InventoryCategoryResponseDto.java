@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 @Builder
 public class InventoryCategoryResponseDto {
     private Long categoryId;
+    private Long parentId;
     private String name;
     private String path;
     private Integer level;
@@ -24,6 +25,7 @@ public class InventoryCategoryResponseDto {
     public static InventoryCategoryResponseDto from(InventoryCategory category) {
         return InventoryCategoryResponseDto.builder()
                 .categoryId(category.getCategoryId())
+                .parentId(category.getParent() != null ? category.getParent().getCategoryId() : null)
                 .name(category.getName())
                 .path(category.getPath())
                 .level(category.getLevel())

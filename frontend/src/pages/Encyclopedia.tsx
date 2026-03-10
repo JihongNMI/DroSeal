@@ -263,7 +263,10 @@ export default function Encyclopedia(): JSX.Element {
       // Step 2: Add it to My Inventory
       await createInventoryItem({
         itemId: newCollectionItem.itemId,
+        collectionId: selectedAlbum.collectionId,
+        categoryId: selectedAlbum.categoryId,
         regType: 'MANUAL',
+        quantity: 1, // 수량 필수값 추가
         note: cardNote,
         purchasedPrice: cardPrice === '' ? 0 : Number(cardPrice)
       })

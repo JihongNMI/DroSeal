@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 
 export interface CategoryDto {
   categoryId: number
+  parentId: number | null
   name: string
   path: string
   level: number

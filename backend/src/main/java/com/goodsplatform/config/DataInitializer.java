@@ -30,9 +30,10 @@ public class DataInitializer {
         try {
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY inventory_id BIGINT NULL");
             jdbcTemplate.execute("ALTER TABLE Transactions MODIFY seller_id BIGINT NULL");
-            log.info("Transactions 테이블의 inventory_id 및 seller_id 제약조건이 NULL 허용으로 정상 변경됨.");
+            jdbcTemplate.execute("ALTER TABLE Collections MODIFY category_id BIGINT NULL");
+            log.info("Transactions 및 Collections 테이블의 제약조건이 정상 변경됨.");
         } catch (Exception e) {
-            log.warn("Transactions 테이블 ALTER 실패 (테이블 미생성 혹은 이미 반영됨): {}", e.getMessage());
+            log.warn("테이블 ALTER 실패 (테이블 미생성 혹은 이미 반영됨): {}", e.getMessage());
         }
 
         // 2. 테스트용 Mock User 생성 (주석 해제 및 안전하게 실행)

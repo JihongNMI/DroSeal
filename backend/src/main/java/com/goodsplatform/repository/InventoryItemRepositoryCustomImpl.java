@@ -1,6 +1,7 @@
 package com.goodsplatform.repository;
 
 import com.goodsplatform.dto.request.InventorySearchCondition;
+import com.goodsplatform.entity.CollectionItem;
 import com.goodsplatform.entity.InventoryItem;
 import com.goodsplatform.entity.RegistrationType;
 import com.goodsplatform.entity.User;
