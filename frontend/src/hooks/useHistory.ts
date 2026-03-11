@@ -88,7 +88,16 @@ export function useHistory(): UseHistoryReturn {
       timestamp: new Date()
     }
 
-    setHistory(prev => [...prev, newRecord])
+    setHistory(prev => {
+      const updated = [...prev, newRecord]
+      // Immediately save to localStorage for critical operations
+      try {
+        saveData(STORAGE_KEYS.HISTORY, updated)
+      } catch (err) {
+        console.error('Failed to save history immediately:', err)
+      }
+      return updated
+    })
   }, [])
 
   /**

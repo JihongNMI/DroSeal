@@ -114,7 +114,11 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
 
       // 현재 아이템 정보 가져오기
       const currentItem = data.items.find(item => item.id === id)
-      const itemName = updates.name || currentItem?.name || 'Unknown Item'
+      if (!currentItem) {
+        throw new Error('Item not found')
+      }
+      
+      const itemName = updates.name || currentItem.name
 
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
@@ -145,21 +149,77 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         await apiUpdateInventoryItem(numericId, request)
       }
 
-      // 변경 타입 결정
-      let changeType: 'item_updated' | 'category_changed' | 'price_updated' | 'name_change' = 'item_updated'
-      if (updates.categoryId !== undefined) {
-        changeType = 'category_changed'
-      } else if (updates.price !== undefined) {
-        changeType = 'price_updated'
-      } else if (updates.name !== undefined) {
-        changeType = 'name_change'
+      // 변경 타입 결정 및 상세 정보 기록 (여러 변경사항을 모두 기록)
+      const changes: Array<Omit<HistoryRecord, 'id' | 'timestamp'>> = []
+
+      if (updates.quantity !== undefined && updates.quantity !== currentItem.quantity) {
+        changes.push({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'quantity_change',
+          previousQuantity: currentItem.quantity,
+          newQuantity: updates.quantity
+        })
+      }
+      
+      if (updates.price !== undefined && updates.price !== currentItem.price) {
+        changes.push({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'price_change',
+          previousPrice: currentItem.price,
+          newPrice: updates.price
+        })
+      }
+      
+      if (updates.notes !== undefined && updates.notes !== currentItem.notes) {
+        changes.push({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'notes_change',
+          previousNotes: currentItem.notes,
+          newNotes: updates.notes
+        })
+      }
+      
+      if (updates.name !== undefined && updates.name !== currentItem.name) {
+        changes.push({
+          itemId: id,
+          itemName: currentItem.name, // Use old name for history
+          changeType: 'name_change',
+          previousName: currentItem.name,
+          newName: updates.name
+        })
+      }
+      
+      if (updates.categoryId !== undefined && updates.categoryId !== currentItem.categoryId) {
+        changes.push({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'category_changed',
+          previousCategoryId: currentItem.categoryId,
+          newCategoryId: updates.categoryId
+        })
+      }
+      
+      if (updates.imageUrl !== undefined && updates.imageUrl !== currentItem.imageUrl) {
+        changes.push({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'image_change'
+        })
       }
 
-      addHistoryRecord({
-        itemId: id,
-        itemName: itemName,
-        changeType: changeType
-      })
+      // 변경사항이 있으면 모두 기록, 없으면 일반 업데이트로 기록
+      if (changes.length > 0) {
+        changes.forEach(change => addHistoryRecord(change))
+      } else {
+        addHistoryRecord({
+          itemId: id,
+          itemName: itemName,
+          changeType: 'item_updated'
+        })
+      }
 
       await refresh()
     } catch (err) {
@@ -173,6 +233,12 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
   const deleteItem = useCallback(async (id: string) => {
     try {
       setLoading(true)
+      
+      // 삭제 전 현재 아이템 정보 저장
+      const currentItem = data.items.find(item => item.id === id)
+      const itemName = currentItem?.name || 'Deleted Item'
+      const itemQuantity = currentItem?.quantity || 0
+      
       const numericId = parseInt(id)
       if (!isNaN(numericId)) {
         await apiDeleteItem(numericId)
@@ -180,8 +246,10 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
 
       addHistoryRecord({
         itemId: id,
-        itemName: 'Deleted Item',
-        changeType: 'item_deleted'
+        itemName: itemName,
+        changeType: 'item_deleted',
+        previousQuantity: itemQuantity,
+        newQuantity: 0
       })
 
       await refresh()
@@ -191,7 +259,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
     } finally {
       setLoading(false)
     }
-  }, [refresh, addHistoryRecord])
+  }, [data.items, refresh, addHistoryRecord])
 
   return {
     data,

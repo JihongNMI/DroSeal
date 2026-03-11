@@ -1025,6 +1025,7 @@ export function Inventory() {
                     categoryId={selectedCategoryId}
                     history={filteredHistory}
                     items={data.items}
+                    categories={categories}
                   />
                 </div>
               ) : (
