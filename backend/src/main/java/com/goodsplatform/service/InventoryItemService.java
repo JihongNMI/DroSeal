@@ -68,7 +68,7 @@ public class InventoryItemService {
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다: " + request.getCategoryId()));
         }
 
-        // 5. 수량 기본값 설정
+        // 5. 수량 설정 (0 허용)
         Integer quantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
         log.info("인벤토리 아이템 생성: user={}, itemId={}, imageUrl={}", user.getUsername(), request.getItemId(),
@@ -96,10 +96,10 @@ public class InventoryItemService {
     }
 
     /**
-     * 도감 아이템(CollectionItem)에 연결된 내 인벤토리 아이템 1개 찾기
+     * 도감 아이템(CollectionItem)에 연결된 내 인벤토리 아이템 1개 찾기 (삭제되지 않은 것만)
      */
     public InventoryItemResponseDto getInventoryItemByCollectionItemId(User user, Long collectionItemId) {
-        return inventoryItemRepository.findFirstByUser_UserIdAndItem_ItemId(user.getUserId(), collectionItemId)
+        return inventoryItemRepository.findFirstByUser_UserIdAndItem_ItemIdAndDeletedAtIsNull(user.getUserId(), collectionItemId)
                 .map(InventoryItemResponseDto::from)
                 .orElse(null); // 없으면 null 반환 (프론트에서 처리)
     }
@@ -170,12 +170,17 @@ public class InventoryItemService {
     }
 
     /**
-     * 인벤토리 아이템 삭제
+     * 인벤토리 아이템 삭제 (Soft Delete)
      */
     @Transactional
     public void deleteInventoryItem(User user, Long inventoryId) {
         InventoryItem inventoryItem = inventoryItemRepository.findByInventoryIdAndUser(inventoryId, user)
                 .orElseThrow(() -> new IllegalArgumentException("접근 권한이 없거나 존재하지 않는 아이템입니다."));
-        inventoryItemRepository.delete(inventoryItem);
+        
+        // Soft delete: deletedAt 필드에 현재 시간 설정
+        inventoryItem.setDeletedAt(java.time.LocalDateTime.now());
+        inventoryItemRepository.save(inventoryItem);
+        
+        log.info("인벤토리 아이템 소프트 삭제: inventoryId={}, userId={}", inventoryId, user.getUserId());
     }
 }

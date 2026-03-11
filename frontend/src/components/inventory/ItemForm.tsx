@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { InventoryItem, InventoryCategory, Encyclopedia } from '../../types'
+
+const FORM_DRAFT_KEY = 'droseal_item_form_draft'
+const DEBOUNCE_DELAY = 800 // 800ms
 
 interface ItemFormProps {
   item?: InventoryItem // undefined for create, defined for edit
   categories: InventoryCategory[]
   encyclopedias: Encyclopedia[]
   uncategorizedId: string
-  onSubmit: (item: Partial<InventoryItem>) => void
+  onSubmit: (item: Partial<InventoryItem>, transaction?: { type: 'PURCHASE' | 'SALE', platform: string }) => void
   onCancel: () => void
 }
 
@@ -59,6 +62,94 @@ export function ItemForm({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // Transaction (가계부) state
+  const [alsoAddTransaction, setAlsoAddTransaction] = useState(false)
+  const [transactionType, setTransactionType] = useState<'PURCHASE' | 'SALE'>('PURCHASE')
+  const [transactionPlatform, setTransactionPlatform] = useState('')
+  const [transactionPrice, setTransactionPrice] = useState<string>('') // Override price for SALE
+
+  // Debounce timer ref
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Auto-detect quantity change and set transaction type
+  useEffect(() => {
+    if (isEditMode && item) {
+      if (quantity < item.quantity) {
+        // Quantity decreased -> SALE
+        setTransactionType('SALE')
+      } else if (quantity > item.quantity) {
+        // Quantity increased -> PURCHASE
+        setTransactionType('PURCHASE')
+      }
+      // If quantity is same, keep current type
+    } else if (!isEditMode) {
+      // Create mode always starts with PURCHASE
+      setTransactionType('PURCHASE')
+    }
+  }, [quantity, isEditMode, item])
+
+  // Load draft from localStorage on mount (only for create mode)
+  useEffect(() => {
+    if (!isEditMode) {
+      const savedDraft = localStorage.getItem(FORM_DRAFT_KEY)
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft)
+          setName(draft.name || '')
+          setCategoryId(draft.categoryId || uncategorizedId)
+          setQuantity(draft.quantity || 1)
+          setPrice(draft.price || '')
+          setDate(draft.date || new Date().toISOString().split('T')[0])
+          setEncyclopediaId(draft.encyclopediaId || '')
+          setNotes(draft.notes || '')
+          setImageUrl(draft.imageUrl || '')
+          console.log('[ItemForm] Restored draft from localStorage')
+        } catch (e) {
+          console.error('[ItemForm] Failed to parse draft:', e)
+        }
+      }
+    }
+  }, [isEditMode, uncategorizedId])
+
+  // Auto-save draft to localStorage with debouncing (only for create mode)
+  useEffect(() => {
+    if (!isEditMode) {
+      // Clear previous timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        const draft = {
+          name,
+          categoryId,
+          quantity,
+          price,
+          date,
+          encyclopediaId,
+          notes,
+          imageUrl
+        }
+        localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(draft))
+        console.log('[ItemForm] Auto-saved draft to localStorage')
+      }, DEBOUNCE_DELAY)
+    }
+
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [name, categoryId, quantity, price, date, encyclopediaId, notes, imageUrl, isEditMode])
+
+  // Clear draft on unmount or successful submit
+  const clearDraft = () => {
+    localStorage.removeItem(FORM_DRAFT_KEY)
+    console.log('[ItemForm] Cleared draft from localStorage')
+  }
+
   // Handle image file upload
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -106,7 +197,10 @@ export function ItemForm({
       newErrors.name = '아이템 이름을 입력해주세요'
     }
 
-    if (quantity < 0) {
+    // Check if quantity is empty or invalid
+    if (quantity === '' || quantity === null || quantity === undefined) {
+      newErrors.quantity = '수량을 입력해주세요'
+    } else if (quantity < 0) {
       newErrors.quantity = '수량은 0 이상이어야 합니다'
     }
 
@@ -116,6 +210,11 @@ export function ItemForm({
 
     if (price && parseFloat(price) < 0) {
       newErrors.price = '가격은 0 이상이어야 합니다'
+    }
+
+    // If adding to accounting, price is required
+    if (alsoAddTransaction && (!price || parseFloat(price) <= 0)) {
+      newErrors.price = '가계부에 등록하려면 가격을 입력해주세요'
     }
 
     setErrors(newErrors)
@@ -154,17 +253,34 @@ export function ItemForm({
       imageUrl: finalImageUrl || undefined
     }
 
-    onSubmit(itemData)
+    // Prepare transaction data if checkbox is checked
+    const transactionData = alsoAddTransaction ? {
+      type: transactionType,
+      platform: transactionPlatform.trim() || '직접거래',
+      // For SALE, use transactionPrice if provided, otherwise use item price
+      price: transactionType === 'SALE' && transactionPrice 
+        ? parseFloat(transactionPrice) 
+        : (price ? parseFloat(price) : undefined)
+    } : undefined
+
+    onSubmit(itemData, transactionData)
+    
+    // Clear draft after successful submit (only for create mode)
+    if (!isEditMode) {
+      clearDraft()
+    }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className={`bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto transition-all ${alsoAddTransaction ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}>
         <h2 className="text-2xl font-bold mb-4">
           {isEditMode ? '아이템 수정' : '아이템 추가'}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className={`flex gap-6 ${alsoAddTransaction ? 'flex-row' : 'flex-col'}`}>
+          {/* Left side: Item Form */}
+          <form onSubmit={handleSubmit} className={`space-y-4 ${alsoAddTransaction ? 'flex-1' : 'w-full'}`}>
           {/* Name field */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -206,13 +322,20 @@ export function ItemForm({
           {/* Quantity field */}
           <div>
             <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
-              수량 *
+              수량 {isEditMode && item && quantity !== item.quantity && (
+                <span className={quantity > item.quantity ? 'text-red-600' : 'text-blue-600'}>
+                  ({item.quantity} → <span className={quantity > item.quantity ? 'text-red-600 font-semibold' : ''}>{quantity}</span>)
+                </span>
+              )} *
             </label>
             <input
               id="quantity"
               type="number"
               value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const val = e.target.value === '' ? '' : parseInt(e.target.value)
+                setQuantity(val as number)
+              }}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.quantity ? 'border-red-500' : 'border-gray-300'
                 }`}
               min="0"
@@ -220,12 +343,18 @@ export function ItemForm({
             {errors.quantity && (
               <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
             )}
+            {quantity === 0 && !errors.quantity && (
+              <p className="text-yellow-600 text-sm mt-1">
+                ⚠️ 수량이 0입니다. '재고 없음'으로 등록되고 수정으로 재고숫자를 바꿀 수 있습니다.
+              </p>
+            )}
           </div>
 
           {/* Price field (optional) */}
           <div>
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-              구입 가격 (선택사항)
+              구입 가격 {alsoAddTransaction && <span className="text-red-500">*</span>}
+              {!alsoAddTransaction && <span className="text-gray-500">(선택사항)</span>}
             </label>
             <input
               id="price"
@@ -235,12 +364,35 @@ export function ItemForm({
               onChange={(e) => setPrice(e.target.value)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.price ? 'border-red-500' : 'border-gray-300'
                 }`}
-              placeholder="가격 (선택사항)"
+              placeholder={alsoAddTransaction ? "가격 입력 (필수)" : "가격 (선택사항)"}
               min="0"
             />
             {errors.price && (
               <p className="text-red-500 text-sm mt-1">{errors.price}</p>
             )}
+          </div>
+
+          {/* Transaction checkbox - moved here */}
+          <div className={`pt-2 border-t border-gray-200 ${
+            !isEditMode || !item
+              ? 'bg-blue-50 -mx-3 px-3 py-3 rounded-lg'  // Create mode = always blue
+              : alsoAddTransaction 
+                ? transactionType === 'SALE' 
+                  ? 'bg-green-50 -mx-3 px-3 py-3 rounded-lg' 
+                  : transactionType === 'PURCHASE'
+                    ? 'bg-red-50 -mx-3 px-3 py-3 rounded-lg'
+                    : 'bg-blue-50 -mx-3 px-3 py-3 rounded-lg'
+                : ''
+          }`}>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={alsoAddTransaction}
+                onChange={(e) => setAlsoAddTransaction(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700">가계부에도 등록</span>
+            </label>
           </div>
 
           {/* Date field */}
@@ -357,17 +509,118 @@ export function ItemForm({
               type="submit"
               className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {isEditMode ? '수정' : '추가'}
+              {isEditMode ? '수정' : alsoAddTransaction ? '아이템 & 가계부 추가' : '추가'}
             </button>
             <button
               type="button"
-              onClick={onCancel}
+              onClick={() => {
+                clearDraft()
+                onCancel()
+              }}
               className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               취소
             </button>
           </div>
         </form>
+
+        {/* Right side: Transaction Form (only when checkbox is checked) */}
+        {alsoAddTransaction && (
+          <div className={`flex-1 space-y-4 border-l border-gray-200 pl-6 ${
+            !isEditMode || !item
+              ? 'bg-blue-50'  // Create mode = blue
+              : transactionType === 'SALE' 
+                ? 'bg-green-50' 
+                : transactionType === 'PURCHASE'
+                  ? 'bg-red-50'
+                  : 'bg-blue-50'
+          } -m-6 p-6 rounded-r-lg`}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">가계부 정보</h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">거래 유형</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer p-2 border rounded-lg hover:bg-gray-50 transition-colors flex-1 justify-center">
+                  <input
+                    type="radio"
+                    name="transactionType"
+                    value="PURCHASE"
+                    checked={transactionType === 'PURCHASE'}
+                    onChange={(e) => setTransactionType(e.target.value as 'PURCHASE' | 'SALE')}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-red-600">구매 (지출)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-2 border rounded-lg hover:bg-gray-50 transition-colors flex-1 justify-center">
+                  <input
+                    type="radio"
+                    name="transactionType"
+                    value="SALE"
+                    checked={transactionType === 'SALE'}
+                    onChange={(e) => setTransactionType(e.target.value as 'PURCHASE' | 'SALE')}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-green-600">판매 (수입)</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">플랫폼/출처</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                value={transactionPlatform}
+                onChange={(e) => setTransactionPlatform(e.target.value)}
+                placeholder="예: 번개장터, 트위터, 직접거래 등"
+              />
+            </div>
+
+            {/* Price override for SALE */}
+            {transactionType === 'SALE' && (
+              <div className="bg-green-100 border border-green-300 rounded-lg p-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">판매가 (선택사항)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-white"
+                  value={transactionPrice}
+                  onChange={(e) => setTransactionPrice(e.target.value)}
+                  placeholder={price ? `구입가: ₩${parseFloat(price).toLocaleString()}` : '판매 금액 입력'}
+                  min="0"
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  {price 
+                    ? '구입가와 다른 금액으로 판매한 경우 여기에 입력하세요' 
+                    : '판매 금액을 입력하세요'}
+                </p>
+              </div>
+            )}
+
+            <div className={`border rounded-lg p-3 ${
+              !isEditMode || !item
+                ? 'bg-blue-100 border-blue-300'  // Create mode = blue
+                : transactionType === 'SALE' 
+                  ? 'bg-green-100 border-green-300' 
+                  : transactionType === 'PURCHASE'
+                    ? 'bg-red-100 border-red-300'
+                    : 'bg-blue-100 border-blue-300'
+            }`}>
+              <p className={`text-xs ${
+                !isEditMode || !item
+                  ? 'text-blue-800'  // Create mode = blue
+                  : transactionType === 'SALE' 
+                    ? 'text-green-800' 
+                    : transactionType === 'PURCHASE'
+                      ? 'text-red-800'
+                      : 'text-blue-800'
+              }`}>
+                <strong>자동 입력:</strong> {transactionType === 'PURCHASE' ? '금액과 날짜는 아이템 정보에서 자동으로 가져옵니다.' : '날짜는 아이템 정보에서 자동으로 가져옵니다.'}
+              </p>
+            </div>
+          </div>
+        )}
+        </div>
       </div>
     </div>
   )

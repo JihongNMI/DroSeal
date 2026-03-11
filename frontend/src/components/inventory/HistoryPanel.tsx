@@ -6,6 +6,7 @@ interface HistoryPanelProps {
   categoryId?: string // undefined shows all, defined shows category-specific
   history: HistoryRecord[]
   items: InventoryItem[] // Needed for category filtering
+  categories: any[] // Needed for category name lookup
 }
 
 const ITEMS_PER_PAGE = 20
@@ -24,8 +25,14 @@ const ITEMS_PER_PAGE = 20
  * @param itemId - Optional item ID to filter history (undefined shows all)
  * @param history - Array of all history records
  */
-export function HistoryPanel({ itemId, categoryId, history, items }: HistoryPanelProps) {
+export function HistoryPanel({ itemId, categoryId, history, items, categories }: HistoryPanelProps) {
   const [currentPage, setCurrentPage] = useState(1)
+
+  // Get category name by ID
+  const getCategoryName = (categoryId: string): string => {
+    const category = categories.find(c => c.id === categoryId)
+    return category?.name || '미분류'
+  }
 
   // Filter and sort history
   const filteredHistory = useMemo(() => {
@@ -51,11 +58,44 @@ export function HistoryPanel({ itemId, categoryId, history, items }: HistoryPane
     })
   }, [history, itemId, categoryId, items])
 
+  // Group history records by timestamp and itemId (within 1 second window)
+  const groupedHistory = useMemo(() => {
+    const groups: Array<{ key: string; records: HistoryRecord[] }> = []
+    const processed = new Set<string>()
+
+    filteredHistory.forEach(record => {
+      if (processed.has(record.id)) return
+
+      const recordTime = new Date(record.timestamp).getTime()
+      const group: HistoryRecord[] = [record]
+      processed.add(record.id)
+
+      // Find other records within 1 second for the same item
+      filteredHistory.forEach(other => {
+        if (processed.has(other.id)) return
+        if (other.itemId !== record.itemId) return
+
+        const otherTime = new Date(other.timestamp).getTime()
+        if (Math.abs(recordTime - otherTime) <= 1000) {
+          group.push(other)
+          processed.add(other.id)
+        }
+      })
+
+      groups.push({
+        key: `${record.itemId}-${recordTime}`,
+        records: group
+      })
+    })
+
+    return groups
+  }, [filteredHistory])
+
   // Pagination
-  const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(groupedHistory.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedHistory = filteredHistory.slice(startIndex, endIndex)
+  const paginatedHistory = groupedHistory.slice(startIndex, endIndex)
 
   // Format date for display
   const formatDate = (date: Date): string => {
@@ -85,7 +125,11 @@ export function HistoryPanel({ itemId, categoryId, history, items }: HistoryPane
       const newPrice = record.newPrice !== undefined ? `₩${record.newPrice.toLocaleString()}` : '(없음)'
       return `가격 변경: ${prevPrice} → ${newPrice}`
     } else if (record.changeType === 'category_changed') {
-      return '카테고리 변경됨'
+      const prevCategory = record.previousCategoryId ? getCategoryName(record.previousCategoryId) : '미분류'
+      const newCategory = record.newCategoryId ? getCategoryName(record.newCategoryId) : '미분류'
+      return `카테고리 변경: ${prevCategory} → ${newCategory}`
+    } else if (record.changeType === 'image_change') {
+      return '이미지 변경'
     } else if (record.changeType === 'item_deleted') {
       return `아이템 삭제 (수량: ${record.previousQuantity})`
     }
@@ -115,38 +159,50 @@ export function HistoryPanel({ itemId, categoryId, history, items }: HistoryPane
       <h2 className="text-xl font-bold mb-4">
         변동 이력
         <span className="text-sm font-normal text-gray-500 ml-2">
-          (총 {filteredHistory.length}건)
+          (총 {groupedHistory.length}건)
         </span>
       </h2>
 
       {/* History list */}
       <div className="space-y-2">
-        {paginatedHistory.map((record) => (
-          <div
-            key={record.id}
-            className="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="text-sm text-gray-500">
-                  {formatDate(record.timestamp)}
-                </div>
-                <div className="font-medium">
-                  {record.itemName}
-                </div>
-                <div className={`text-sm ${
-                  record.changeType === 'item_deleted' 
-                    ? 'text-red-600'
-                    : record.changeType === 'item_created'
-                    ? 'text-green-600'
-                    : 'text-gray-700'
-                }`}>
-                  {formatChangeDescription(record)}
+        {paginatedHistory.map((group) => {
+          const firstRecord = group.records[0]
+          const hasMultipleChanges = group.records.length > 1
+          
+          return (
+            <div
+              key={group.key}
+              className="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="text-sm text-gray-500">
+                    {formatDate(firstRecord.timestamp)}
+                  </div>
+                  <div className="font-medium">
+                    {firstRecord.itemName}
+                  </div>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    {group.records.map((record, idx) => (
+                      <div
+                        key={idx}
+                        className={
+                          record.changeType === 'item_deleted' 
+                            ? 'text-red-600'
+                            : record.changeType === 'item_created'
+                            ? 'text-green-600'
+                            : ''
+                        }
+                      >
+                        {formatChangeDescription(record)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Pagination */}

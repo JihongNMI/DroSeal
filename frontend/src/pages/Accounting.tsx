@@ -78,7 +78,7 @@ export default function Accounting(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Accounting</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">간편 가계부</h1>
 
         {/* Error message */}
         {error && (
