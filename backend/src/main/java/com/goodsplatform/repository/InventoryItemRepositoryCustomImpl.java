@@ -33,6 +33,7 @@ public class InventoryItemRepositoryCustomImpl implements InventoryItemRepositor
                 .leftJoin(inventoryItem.item, collectionItem).fetchJoin()
                 .where(
                         inventoryItem.user.eq(user),
+                        inventoryItem.deletedAt.isNull(), // Soft delete 필터
                         keywordContains(condition.getKeyword()),
                         regTypeEq(condition.getRegType()))
                 .offset(pageable.getOffset())
@@ -45,6 +46,7 @@ public class InventoryItemRepositoryCustomImpl implements InventoryItemRepositor
                 .from(inventoryItem)
                 .leftJoin(inventoryItem.item, collectionItem).where(
                         inventoryItem.user.eq(user),
+                        inventoryItem.deletedAt.isNull(), // Soft delete 필터
                         keywordContains(condition.getKeyword()),
                         regTypeEq(condition.getRegType()));
 

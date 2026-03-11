@@ -13,6 +13,7 @@ import { HistoryPanel } from '../components/inventory/HistoryPanel'
 import { ItemSearch, type ItemSearchFilters } from '../components/inventory/ItemSearch'
 import { HistorySearch, type HistorySearchFilters } from '../components/inventory/HistorySearch'
 import { ImageEditModal } from '../components/inventory/ImageEditModal'
+import { DeleteConfirmModal } from '../components/inventory/DeleteConfirmModal'
 import { formatCategoryPath, searchCategories, getChildren, getCategoryPath } from '../services/categoryService'
 import type { InventoryItem, HistoryRecord, InventoryCategory } from '../types'
 
@@ -112,7 +113,13 @@ function DraggableTableRow({
       <td className="px-6 py-4 text-sm text-gray-600">
         {formatCategoryPath(item.categoryId, categories)}
       </td>
-      <td className="px-6 py-4 text-sm text-gray-600">{item.quantity}</td>
+      <td className="px-6 py-4 text-sm">
+        {item.quantity === 0 ? (
+          <span className="text-red-600 font-medium">재고 없음</span>
+        ) : (
+          <span className="text-gray-600">{item.quantity}</span>
+        )}
+      </td>
       <td className="px-6 py-4 text-sm text-gray-600">
         {item.price ? (
           <span>₩{item.price.toLocaleString()}</span>
@@ -223,6 +230,8 @@ export function Inventory() {
   const [expandedBulkCategories, setExpandedBulkCategories] = useState<Set<string>>(new Set())
   const [draggedItem, setDraggedItem] = useState<InventoryItem | null>(null)
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<InventoryItem | undefined>()
 
   // Category form state
   const [categoryName, setCategoryName] = useState('')
@@ -330,9 +339,45 @@ export function Inventory() {
   }
 
   // Item management handlers
-  const handleAddItem = async (item: Partial<InventoryItem>) => {
+  const handleAddItem = async (item: Partial<InventoryItem>, transaction?: { type: 'PURCHASE' | 'SALE', platform: string, price?: number }) => {
     try {
-      await addItem(item)
+      console.log('[handleAddItem] Item data:', item)
+      console.log('[handleAddItem] Transaction data:', transaction)
+      
+      const newItem = await addItem(item)
+      console.log('[handleAddItem] New item created:', newItem)
+      
+      // If transaction data is provided, also create transaction
+      if (transaction && newItem) {
+        // Use transaction.price if provided (for SALE), otherwise use item.price
+        const transactionPrice = transaction.price || item.price
+        
+        if (!transactionPrice) {
+          console.log('[handleAddItem] Skipping transaction: no price available')
+        } else {
+          try {
+            console.log('[handleAddItem] Creating transaction with price:', transactionPrice)
+            const { createTransaction } = await import('../api/accounting')
+            await createTransaction({
+              transactionType: transaction.type,
+              price: transactionPrice,
+              transactionDate: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              platform: transaction.platform,
+              inventoryId: parseInt(newItem.id), // Link to the newly created item
+            })
+            console.log('[handleAddItem] Transaction created successfully')
+          } catch (transactionError) {
+            console.error('[handleAddItem] Failed to create transaction:', transactionError)
+            alert('아이템은 추가되었으나 가계부 등록에 실패했습니다.')
+          }
+        }
+      } else {
+        console.log('[handleAddItem] Skipping transaction creation:', { 
+          hasTransaction: !!transaction, 
+          hasNewItem: !!newItem
+        })
+      }
+      
       setShowItemForm(false)
 
       if (item.categoryId) {
@@ -344,17 +389,51 @@ export function Inventory() {
         })
       }
     } catch (error) {
+      console.error('[handleAddItem] Error:', error)
       alert('아이템 추가에 실패했습니다.')
     }
   }
 
-  const handleUpdateItem = async (item: Partial<InventoryItem>) => {
+  const handleUpdateItem = async (item: Partial<InventoryItem>, transaction?: { type: 'PURCHASE' | 'SALE', platform: string, price?: number }) => {
     if (editingItem) {
       try {
+        console.log('[handleUpdateItem] Item data:', item)
+        console.log('[handleUpdateItem] Transaction data:', transaction)
+        
         await updateItem(editingItem.id, item)
+        
+        // If transaction data is provided, also create transaction
+        if (transaction) {
+          // Use transaction.price if provided (for SALE), otherwise use item.price
+          const transactionPrice = transaction.price || item.price
+          
+          if (!transactionPrice) {
+            console.log('[handleUpdateItem] Skipping transaction: no price available')
+          } else {
+            try {
+              console.log('[handleUpdateItem] Creating transaction with price:', transactionPrice)
+              const { createTransaction } = await import('../api/accounting')
+              await createTransaction({
+                transactionType: transaction.type,
+                price: transactionPrice,
+                transactionDate: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                platform: transaction.platform,
+                inventoryId: parseInt(editingItem.id), // Link to the existing item
+              })
+              console.log('[handleUpdateItem] Transaction created successfully')
+            } catch (transactionError) {
+              console.error('[handleUpdateItem] Failed to create transaction:', transactionError)
+              alert('아이템은 수정되었으나 가계부 등록에 실패했습니다.')
+            }
+          }
+        } else {
+          console.log('[handleUpdateItem] Skipping transaction creation: no transaction data')
+        }
+        
         setShowItemForm(false)
         setEditingItem(undefined)
       } catch (error) {
+        console.error('[handleUpdateItem] Error:', error)
         alert('아이템 수정에 실패했습니다.')
       }
     }
@@ -367,12 +446,58 @@ export function Inventory() {
   }
 
   const handleDeleteItem = async (itemId: string) => {
-    if (confirm('이 아이템을 삭제하시겠습니까?')) {
-      try {
-        await deleteItem(itemId)
-      } catch (error) {
-        alert('아이템 삭제에 실패했습니다.')
+    const item = data.items.find(i => i.id === itemId)
+    if (!item) return
+    
+    setItemToDelete(item)
+    setShowDeleteModal(true)
+  }
+
+  const handleConfirmDelete = async (addToAccounting: boolean, platform?: string, salePrice?: number) => {
+    if (!itemToDelete) return
+
+    console.log('[handleConfirmDelete] Item to delete:', itemToDelete)
+    console.log('[handleConfirmDelete] Add to accounting:', addToAccounting)
+    console.log('[handleConfirmDelete] Platform:', platform)
+    console.log('[handleConfirmDelete] Sale price:', salePrice)
+
+    try {
+      // Delete item first (now using soft delete in backend)
+      await deleteItem(itemToDelete.id)
+      console.log('[handleConfirmDelete] Item deleted successfully')
+      
+      // Then create SALE transaction if requested
+      if (addToAccounting) {
+        // Use salePrice if provided, otherwise fall back to item's purchase price
+        const finalPrice = salePrice || itemToDelete.price
+        
+        if (!finalPrice) {
+          alert('판매가를 입력해주세요.')
+          return
+        }
+
+        try {
+          console.log('[handleConfirmDelete] Creating SALE transaction with price:', finalPrice)
+          const { createTransaction } = await import('../api/accounting')
+          await createTransaction({
+            transactionType: 'SALE',
+            price: finalPrice,
+            transactionDate: new Date().toISOString().split('T')[0],
+            platform: platform || '직접거래',
+            inventoryId: parseInt(itemToDelete.id),
+          })
+          console.log('[handleConfirmDelete] Sale transaction created successfully')
+        } catch (transactionError: any) {
+          console.error('[handleConfirmDelete] Failed to create sale transaction:', transactionError)
+          alert('아이템은 삭제되었으나 가계부 등록에 실패했습니다.')
+        }
       }
+
+      setShowDeleteModal(false)
+      setItemToDelete(undefined)
+    } catch (error: any) {
+      console.error('[handleConfirmDelete] Error:', error)
+      alert(`아이템 삭제에 실패했습니다: ${error.response?.data?.message || error.message}`)
     }
   }
 
@@ -1477,6 +1602,19 @@ export function Inventory() {
             onCancel={() => {
               setShowImageEditModal(false)
               setSelectedItemForImageEdit(undefined)
+            }}
+          />
+        )}
+
+        {/* Delete Confirm Modal */}
+        {showDeleteModal && itemToDelete && (
+          <DeleteConfirmModal
+            itemName={itemToDelete.name}
+            itemPrice={itemToDelete.price}
+            onConfirm={handleConfirmDelete}
+            onCancel={() => {
+              setShowDeleteModal(false)
+              setItemToDelete(undefined)
             }}
           />
         )}

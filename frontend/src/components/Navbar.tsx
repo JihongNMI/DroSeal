@@ -58,7 +58,7 @@ export function Navbar(): JSX.Element {
                 }`
               }
             >
-              Accounting
+              간편 가계부
             </NavLink>
             <NavLink
               to="/mypage"
@@ -123,7 +123,7 @@ export function Navbar(): JSX.Element {
                   }`
                 }
               >
-                Accounting
+                간편 가계부
               </NavLink>
               <NavLink
                 to="/mypage"

@@ -39,7 +39,7 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
         id: dto.inventoryId.toString(),
         name: dto.customName || dto.collectionItemName || 'Unnamed Item',
         categoryId: dto.categoryId?.toString() || 'uncategorized',
-        quantity: dto.quantity || 1,
+        quantity: dto.quantity ?? 1, // Use nullish coalescing to allow 0
         price: dto.purchasedPrice || 0,
         date: dto.purchasedAt ? new Date(dto.purchasedAt) : new Date(dto.createdAt),
         encyclopediaId: dto.collectionId?.toString(),
@@ -79,12 +79,12 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
   const addItem = useCallback(async (item: any) => {
     try {
       setLoading(true)
-      await createInventoryItem({
+      const newItem = await createInventoryItem({
         itemId: item.itemId,
         collectionId: item.encyclopediaId ? parseInt(item.encyclopediaId) : undefined,
         categoryId: item.categoryId ? parseInt(item.categoryId) : undefined,
         customName: item.name,
-        quantity: item.quantity || 1,
+        quantity: item.quantity ?? 1, // Use nullish coalescing to allow 0
         regType: 'MANUAL',
         note: item.notes,
         purchasedPrice: item.price,
@@ -100,6 +100,12 @@ export function useInventory({ addHistoryRecord }: UseInventoryParams): UseInven
       })
 
       await refresh()
+      
+      // Return the created item with ID
+      return {
+        id: newItem.inventoryId.toString(),
+        ...item
+      }
     } catch (err) {
       setError('아이템 추가에 실패했습니다.')
       throw err
