@@ -4,9 +4,10 @@ import com.goodsplatform.entity.User;
 import com.goodsplatform.entity.InventoryCategory;
 import com.goodsplatform.repository.InventoryCategoryRepository;
 import com.goodsplatform.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataInitializer {
 
     private final UserRepository userRepository;
-    private final InventoryCategoryRepository InventoryCategoryRepository;
+    private final InventoryCategoryRepository inventoryCategoryRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
         log.info("DataInitializer 실행 시작...");
@@ -55,7 +56,7 @@ public class DataInitializer {
 
         // 3. 기본 제공 카테고리 자동화
         try {
-            if (InventoryCategoryRepository.count() == 0) {
+            if (inventoryCategoryRepository.count() == 0) {
                 String[] defaultCategories = { "씰", "카드", "굿즈", "피규어", "책", "기본" };
                 for (String categoryName : defaultCategories) {
                     InventoryCategory category = InventoryCategory.builder()
@@ -63,11 +64,11 @@ public class DataInitializer {
                             .level(1)
                             .path("")
                             .build();
-                    InventoryCategoryRepository.save(category);
+                    inventoryCategoryRepository.save(category);
 
                     // path 설정
                     category.setPath(String.valueOf(category.getCategoryId()));
-                    InventoryCategoryRepository.save(category);
+                    inventoryCategoryRepository.save(category);
                 }
                 log.info("기본 제공 카테고리가 자동으로 생성되었습니다.");
             }

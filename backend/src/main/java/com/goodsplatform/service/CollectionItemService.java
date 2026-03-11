@@ -24,9 +24,10 @@ public class CollectionItemService {
         @Transactional
         public CollectionItemResponseDto createMasterItem(CollectionItemCreateRequestDto request) {
 
-                // 1. 이름 중복 방어
-                collectionItemRepository.findByNameIgnoreCase(request.getName()).ifPresent(item -> {
-                        throw new IllegalArgumentException("이미 존재하는 아이템 이름입니다: " + request.getName());
+                // 1. 이름 중복 방어 (같은 도감 내에서만 중복 체크)
+                collectionItemRepository.findByNameIgnoreCaseAndCollection_CollectionId(
+                        request.getName(), request.getCollectionId()).ifPresent(item -> {
+                        throw new IllegalArgumentException("해당 도감 내에 이미 존재하는 아이템 이름입니다: " + request.getName());
                 });
 
                 // 2. 소속된 Collection 그룹 확보

@@ -11,6 +11,7 @@ import io
 from PIL import Image
 import os
 import json
+import re
 import torch
 from transformers import CLIPProcessor, CLIPModel
 from pinecone import Pinecone
@@ -48,7 +49,7 @@ try:
         pc = Pinecone(api_key=PINECONE_API_KEY)
         pinecone_index = pc.Index(PINECONE_INDEX_NAME)
     else:
-        logger.warn("Pinecone API 키가 설정되지 않았거나 기본값입니다.")
+        logger.warning("Pinecone API 키가 설정되지 않았거나 기본값입니다.")
 except Exception as e:
     logger.error(f"Pinecone 연결 에러: {e}")
 
@@ -106,17 +107,17 @@ def get_image_embedding(image: Image.Image) -> list[float]:
 def search_similar_goods(embedding: list[float], top_k: int = 5) -> list[dict]:
     """Pinecone DB에서 유사 굿즈 검색"""
     if pinecone_index is None:
-        logger.warn("Pinecone 인덱스가 활성화되지 않아 검색을 건너뜁니다.")
+        logger.warning("Pinecone 인덱스가 활성화되지 않아 검색을 건너뜁니다.")
         return []
-        
+
     response = pinecone_index.query(
         vector=embedding,
         top_k=top_k,
         include_metadata=True
     )
     candidates = [
-        match["metadata"] for match in response.get("matches", []) 
-        if "metadata" in match
+        match.metadata for match in response.matches
+        if match.metadata
     ]
     return candidates
 
@@ -146,11 +147,26 @@ def analyze_with_gemini(image: Image.Image, candidates: list[dict], cropped_stat
     }}
     """
     response = gemini_model.generate_content([prompt, image])
-    return json.loads(response.text)
+    try:
+        return json.loads(response.text)
+    except json.JSONDecodeError:
+        # Gemini가 마크다운 코드블록(```json ... ```)으로 감싸서 반환한 경우 정규식으로 추출
+        match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        raise ValueError(f"Gemini 응답 JSON 파싱 실패: {response.text}")
 
 # =========================================================================
 # 4. 메인 API 엔드포인트
 # =========================================================================
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "ok",
+        "pinecone": "connected" if pinecone_index is not None else "disconnected"
+    }
+
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 async def analyze_image(payload: ImagePayload):
@@ -173,15 +189,16 @@ async def analyze_image(payload: ImagePayload):
 
         if len(results) > 0 and len(results[0].boxes) > 0:
             boxes = results[0].boxes
-            best_box = boxes[0] 
+            best_box = max(boxes, key=lambda b: float(b.conf[0]))
             x1, y1, x2, y2 = map(int, best_box.xyxy[0])
-            
+
             # 크롭 수행
             cropped_img_cv = img_cv[y1:y2, x1:x2]
             cropped_status = f"Cropped object from ({x1},{y1}) to ({x2},{y2})"
-            
-            # 디버깅용 저장 (원하면 주석 처리해)
-            cv2.imwrite(f"cropped_debug_{payload.image_hash}.jpg", cropped_img_cv)
+
+            # 디버깅용 저장 (DEBUG_SAVE_CROP=true 환경변수 설정 시에만 저장)
+            if os.getenv("DEBUG_SAVE_CROP", "false").lower() == "true":
+                cv2.imwrite(f"cropped_debug_{payload.image_hash}.jpg", cropped_img_cv)
         
         # OpenCV 이미지(BGR)를 PIL 이미지(RGB)로 변환 (CLIP & Gemini용)
         cropped_rgb = cv2.cvtColor(cropped_img_cv, cv2.COLOR_BGR2RGB)
@@ -199,6 +216,10 @@ async def analyze_image(payload: ImagePayload):
         # -------------------------------------------------------------
         logger.info("Gemini를 통한 멀티모달 최종 분석 중...")
         gemini_result_json = analyze_with_gemini(pil_image, candidates, cropped_status)
+
+        # Gemini가 배열로 반환한 경우 첫 번째 요소 사용
+        if isinstance(gemini_result_json, list):
+            gemini_result_json = gemini_result_json[0] if gemini_result_json else {}
 
         # Gemini가 뱉어낸 JSON을 응답 DTO 규격에 맞게 변환
         final_item = CollectionItemDraft(

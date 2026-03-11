@@ -330,8 +330,7 @@ export function ItemForm({
                 <img
                   src={imageUrl}
                   alt="미리보기"
-                  className="w-32 h-32 object-cover rounded border"
-                  onError={() => setImageUrl('')}
+                  className="w-32 h-32 object-cover rounded border bg-gray-50 flex items-center justify-center text-xs text-gray-400"
                 />
               </div>
             )}

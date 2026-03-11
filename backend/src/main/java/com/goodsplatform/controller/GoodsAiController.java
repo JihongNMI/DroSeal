@@ -3,6 +3,7 @@ package com.goodsplatform.controller;
 import com.goodsplatform.dto.GoodsAnalyzeRequest;
 import com.goodsplatform.dto.response.CollectionItemResponseDto;
 import com.goodsplatform.entity.User;
+import com.goodsplatform.repository.UserRepository;
 import com.goodsplatform.service.GoodsAiPipelineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.List;
 public class GoodsAiController {
 
     private final GoodsAiPipelineService goodsAiPipelineService;
+    private final UserRepository userRepository;
 
     /**
      * Stage D: 이미지 URL을 받아 분석하여 저장하지 않고 List&lt;CollectionItemResponseDto&gt;만
@@ -52,8 +54,9 @@ public class GoodsAiController {
 
     private ResponseEntity<?> doAnalyze(GoodsAnalyzeRequest request) {
         try {
-            // TODO: 실제 인증 연동 시 시큐리티 컨텍스트에서 로그인 유저를 가져와야 합니다.
-            User mockUser = User.builder().userId(1L).username("testUser").build();
+            User mockUser = userRepository.findByUsername("testUser")
+                    .orElseGet(() -> userRepository.findAll().stream().findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.")));
 
             List<CollectionItemResponseDto> drafts = goodsAiPipelineService.analyzeAndPreview(request, mockUser);
             return ResponseEntity.ok(drafts);

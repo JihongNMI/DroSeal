@@ -41,21 +41,27 @@ public class GoodsAiPipelineService {
     private final AiAnalysisLogRepository aiAnalysisLogRepository;
     private final ObjectMapper objectMapper;
     private final WebClient geminiWebClient;
+    private final WebClient fastApiWebClient;
     private final VectorSearchService vectorSearchService;
     private final CollectionItemRepository collectionItemRepository;
 
     @Value("${gemini.api.key:}")
     private String geminiApiKey;
 
+    @Value("${fastapi.url}")
+    private String fastApiUrl;
+
     public GoodsAiPipelineService(
             AiAnalysisLogRepository aiAnalysisLogRepository,
             ObjectMapper objectMapper,
             @Qualifier("geminiWebClient") WebClient geminiWebClient,
+            @Qualifier("fastApiWebClient") WebClient fastApiWebClient,
             VectorSearchService vectorSearchService,
             CollectionItemRepository collectionItemRepository) {
         this.aiAnalysisLogRepository = aiAnalysisLogRepository;
         this.objectMapper = objectMapper;
         this.geminiWebClient = geminiWebClient;
+        this.fastApiWebClient = fastApiWebClient;
         this.vectorSearchService = vectorSearchService;
         this.collectionItemRepository = collectionItemRepository;
     }
@@ -109,22 +115,18 @@ public class GoodsAiPipelineService {
     }
 
     private String callFastApiForAnalysis(ImagePayload imagePayload) {
-        String fastApiUrl = "http://localhost:8000/api/analyze"; // TODO: application.yml 등으로 외부 주입
-
         try {
             log.info("FastAPI 서버 ({}) 로 이미지 분석 요청 전송", fastApiUrl);
 
-            // FastAPI 연동 규격에 맞게 JSON 바디 구성 (Base64 파일, MIME 타입 전달)
             Map<String, Object> requestBody = Map.of(
                     "image_base64", imagePayload.base64Data(),
                     "mime_type", imagePayload.mimeType(),
                     "image_hash", imagePayload.imageHash());
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> response = geminiWebClient.mutate()
-                    .baseUrl(fastApiUrl)
-                    .build()
+            Map<String, Object> response = fastApiWebClient
                     .post()
+                    .uri(fastApiUrl)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)

@@ -1,7 +1,9 @@
 package com.goodsplatform.service;
 
 import com.goodsplatform.dto.request.CollectionCreateRequestDto;
+import com.goodsplatform.dto.response.CollectionItemResponseDto;
 import com.goodsplatform.dto.response.CollectionProgressResponseDto;
+import com.goodsplatform.entity.CollectionItem;
 import com.goodsplatform.entity.InventoryCategory;
 import com.goodsplatform.entity.Collection;
 import com.goodsplatform.entity.User;
@@ -15,6 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,14 +29,14 @@ public class CollectionService {
     private final CollectionRepository collectionRepository;
     private final CollectionItemRepository collectionItemRepository;
     private final InventoryItemRepository inventoryItemRepository;
-    private final InventoryCategoryRepository InventoryCategoryRepository;
+    private final InventoryCategoryRepository inventoryCategoryRepository;
 
     /**
      * 새로운 도감(Collection) 생성
      */
     @Transactional
     public CollectionProgressResponseDto createCollection(User user, CollectionCreateRequestDto request) {
-        InventoryCategory category = InventoryCategoryRepository.findById(request.getCategoryId())
+        InventoryCategory category = inventoryCategoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         Collection collection = Collection.builder()
@@ -97,5 +103,21 @@ public class CollectionService {
     public Collection getCollectionById(Long collectionId) {
         return collectionRepository.findById(collectionId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도감입니다."));
+    }
+
+    /**
+     * 도감 전체 아이템 목록 조회 (유저 보유 여부 포함)
+     * - 유저가 보유한 CollectionItem ID를 단일 쿼리로 조회 후 isOwned 매핑 (N+1 방지)
+     */
+    public List<CollectionItemResponseDto> getCollectionItems(Long collectionId, User user) {
+        List<CollectionItem> items =
+                collectionItemRepository.findByCollection_CollectionIdOrderByItemNumberAsc(collectionId);
+
+        Set<Long> ownedItemIds =
+                inventoryItemRepository.findOwnedItemIdsByUserIdAndCollectionId(user.getUserId(), collectionId);
+
+        return items.stream()
+                .map(item -> CollectionItemResponseDto.from(item, ownedItemIds.contains(item.getItemId())))
+                .collect(Collectors.toList());
     }
 }

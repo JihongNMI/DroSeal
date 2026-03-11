@@ -4,6 +4,7 @@ import {
   createCollection,
   createCollectionItem,
   fetchCollectionItems,
+  fetchCollectionItemsWithOwnership,
   updateCollectionItemImage,
   CollectionItemResponseDto,
   CollectionProgressResponseDto
@@ -32,6 +33,7 @@ export default function Encyclopedia(): JSX.Element {
   const [selectedAlbum, setSelectedAlbum] = useState<CollectionProgressResponseDto | null>(null)
   const [collectionItems, setCollectionItems] = useState<CollectionItemResponseDto[]>([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [isFlipping, setIsFlipping] = useState<'next' | 'prev' | null>(null)
   const itemsPerPage = 9 // 3x3 Grid
 
   // Selected Card States for Left Page
@@ -78,16 +80,21 @@ export default function Encyclopedia(): JSX.Element {
       setIsEditingNote(false)
     } catch (error) {
       console.error('Failed to update note and price', error)
-      alert('Failed to update details.')
+      alert('상세 정보 저장에 실패했습니다.')
     } finally {
       setIsSavingNote(false)
     }
   }
 
-  const loadCollectionItems = async (collectionId: number) => {
+  const loadCollectionItems = async (collectionId: number, isOfficial: boolean = false) => {
     try {
-      const data = await fetchCollectionItems(collectionId)
-      setCollectionItems(data.content || [])
+      if (isOfficial) {
+        const data = await fetchCollectionItemsWithOwnership(collectionId)
+        setCollectionItems(data || [])
+      } else {
+        const data = await fetchCollectionItems(collectionId)
+        setCollectionItems(data.content || [])
+      }
     } catch (error) {
       console.error('Failed to load collection items', error)
     }
@@ -99,7 +106,7 @@ export default function Encyclopedia(): JSX.Element {
     setCollectionItems([]) // 화면 플리커 방지 및 이전 데이터 지우개
     setSelectedCardItem(null)
     setSelectedEmptySlotInfo(null)
-    await loadCollectionItems(col.collectionId)
+    await loadCollectionItems(col.collectionId, col.isOfficial)
   }
 
   // Custom Entry Modal States
@@ -166,12 +173,12 @@ export default function Encyclopedia(): JSX.Element {
 
   const handleSaveCustomEntry = async () => {
     if (!customName.trim()) {
-      alert('Please enter a collection name')
+      alert('도감 이름을 입력해주세요.')
       return
     }
 
     if (!selectedCategoryId) {
-      alert('Please select a category!')
+      alert('카테고리를 선택해주세요!')
       return
     }
 
@@ -193,14 +200,14 @@ export default function Encyclopedia(): JSX.Element {
         gridX,
         gridY
       })
-      alert('Collection created successfully!')
+      alert('도감이 성공적으로 생성되었습니다!')
       handleCloseModal()
       loadCollections()
     } catch (error: any) {
       console.error('Detailed Error creating collection:', error)
       // 서버에서 보내는 상세 에러 메시지가 있다면 출력
-      const errorMsg = error.message || 'Unknown error occurred';
-      alert(`Failed to create collection: ${errorMsg}`)
+      const errorMsg = error.message || '알 수 없는 오류가 발생했습니다.';
+      alert(`도감 생성에 실패했습니다: ${errorMsg}`)
     }
   }
 
@@ -229,7 +236,7 @@ export default function Encyclopedia(): JSX.Element {
   const handleAddCardSubmit = async () => {
     if (!selectedAlbum) return
     if (!cardName.trim()) {
-      alert('Card name is required')
+      alert('카드 이름은 필수 항목입니다.')
       return
     }
 
@@ -244,7 +251,7 @@ export default function Encyclopedia(): JSX.Element {
           finalImageUrl = await uploadImage(cardImageFile)
         } catch (uploadError) {
           console.error('Image upload failed:', uploadError)
-          alert('Failed to upload image. Please try again.')
+          alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
           setIsSubmitting(false)
           return
         }
@@ -272,15 +279,14 @@ export default function Encyclopedia(): JSX.Element {
         purchasedPrice: cardPrice === '' ? 0 : Number(cardPrice)
       })
 
-      alert('Card added to your inventory successfully!')
+      alert('카드가 인벤토리에 성공적으로 추가되었습니다!')
       setIsAddCardModalOpen(false)
       loadCollections() // Refresh progress on main board
       // 바로 카드 목록 새로고침
       await loadCollectionItems(selectedAlbum.collectionId)
     } catch (error) {
       console.error('Failed to add card:', error)
-      alert('Failed to add card to inventory. Please check server logs.')
-      alert('Failed to add card to inventory. Please check server logs.')
+      alert('카드 추가에 실패했습니다. 서버 로그를 확인해주세요.')
     } finally {
       setIsSubmitting(false)
     }
@@ -339,10 +345,10 @@ export default function Encyclopedia(): JSX.Element {
         item.itemId === updatedItem.itemId ? updatedItem : item
       ))
 
-      alert('Card image updated successfully!')
+      alert('카드 이미지가 성공적으로 변경되었습니다!')
     } catch (error) {
       console.error('Failed to update image', error)
-      alert('Failed to update card image.')
+      alert('카드 이미지 변경에 실패했습니다.')
     } finally {
       setIsUploadingImage(false)
       // Reset input value so the same file can be selected again if needed
@@ -354,12 +360,12 @@ export default function Encyclopedia(): JSX.Element {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Encyclopedia</h1>
+          <h1 className="text-3xl font-bold text-gray-900">내 도감</h1>
           <button
             onClick={() => setShowCustomModal(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Add Custom Entry
+            + 도감 추가하기
           </button>
         </div>
 
@@ -368,7 +374,7 @@ export default function Encyclopedia(): JSX.Element {
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Search by collection name..."
+              placeholder="도감 이름으로 검색..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
@@ -383,7 +389,7 @@ export default function Encyclopedia(): JSX.Element {
               onChange={(e) => setFilterCategoryId(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-gray-700"
             >
-              <option value="">All Categories</option>
+              <option value="">전체 카테고리</option>
               {categories.map(cat => (
                 <option key={cat.categoryId} value={cat.categoryId}>{cat.name}</option>
               ))}
@@ -394,12 +400,12 @@ export default function Encyclopedia(): JSX.Element {
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-500 mt-3 text-sm">Loading from server...</p>
+            <p className="text-gray-500 mt-3 text-sm">데이터를 불러오는 중...</p>
           </div>
         ) : collections.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">No collections found</p>
-            <p className="text-gray-400 text-sm">Click "Add Encyclopedia" to create a new one.</p>
+            <p className="text-gray-500 text-lg mb-4">등록된 도감이 없습니다.</p>
+            <p className="text-gray-400 text-sm">"도감 추가하기" 버튼을 눌러 새 도감을 만들어보세요.</p>
           </div>
         ) : (
           <div className="space-y-12">
@@ -415,7 +421,7 @@ export default function Encyclopedia(): JSX.Element {
                 {/* Bookshelf Shelf Header */}
                 <div className="border-b-4 border-gray-800 pb-2 mb-6 flex items-baseline justify-between">
                   <h2 className="text-2xl font-bold text-gray-800 font-serif tracking-wide">{category}</h2>
-                  <span className="text-gray-500 font-medium text-sm">{cols.length} Volumes</span>
+                  <span className="text-gray-500 font-medium text-sm">총 {cols.length}권</span>
                 </div>
 
                 {/* Bookshelf Grid */}
@@ -439,7 +445,7 @@ export default function Encyclopedia(): JSX.Element {
                             {col.name}
                           </h3>
                           {col.isOfficial && (
-                            <span className="inline-block mt-1 text-[10px] uppercase tracking-wider text-yellow-300 font-bold border border-yellow-300 px-1 rounded">Official</span>
+                            <span className="inline-block mt-1 text-[10px] uppercase tracking-wider text-yellow-300 font-bold border border-yellow-300 px-1 rounded">공식</span>
                           )}
                         </div>
 
@@ -500,7 +506,7 @@ export default function Encyclopedia(): JSX.Element {
                       {selectedCardItem.imageUrl ? (
                         <img src={selectedCardItem.imageUrl} alt={selectedCardItem.name} className="object-contain w-full h-full" />
                       ) : (
-                        <div className="text-gray-400 font-serif text-lg">No Image Available</div>
+                        <div className="text-gray-400 font-serif text-lg">이미지 없음</div>
                       )}
 
                       {/* Hover Overlay for Image Edit */}
@@ -513,7 +519,7 @@ export default function Encyclopedia(): JSX.Element {
                         ) : (
                           <svg className="w-10 h-10 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
-                        <span className="text-white font-semibold shadow-sm">{isUploadingImage ? 'Uploading...' : 'Change Image'}</span>
+                        <span className="text-white font-semibold shadow-sm">{isUploadingImage ? '업로드 중...' : '이미지 변경'}</span>
                       </div>
                       <input
                         type="file"
@@ -538,7 +544,7 @@ export default function Encyclopedia(): JSX.Element {
 
                       {selectedCardItem.description && (
                         <div className="mb-6">
-                          <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Official Description</h4>
+                          <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">공식 설명</h4>
                           <p className="text-gray-700 font-serif leading-relaxed text-sm">
                             {selectedCardItem.description}
                           </p>
@@ -549,7 +555,7 @@ export default function Encyclopedia(): JSX.Element {
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="flex items-center text-sm font-bold text-yellow-800">
                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            Public Display Note
+                            공개 메모
                           </h4>
                           {!isEditingNote && (
                             <button
@@ -606,7 +612,7 @@ export default function Encyclopedia(): JSX.Element {
                               {selectedCollectionNote?.displayNote || '등록된 표시 메모가 없습니다.'}
                             </p>
                             <div className="flex justify-between items-center text-sm font-semibold border-t border-yellow-200/50 pt-3">
-                              <span className="text-gray-500">Asking Price</span>
+                              <span className="text-gray-500">희망 가격</span>
                               <span className="text-gray-900 font-mono">
                                 {selectedCollectionNote?.askingPrice
                                   ? `₩ ${selectedCollectionNote.askingPrice.toLocaleString()}`
@@ -631,7 +637,7 @@ export default function Encyclopedia(): JSX.Element {
 
                     <div className="w-full h-64 bg-gray-200 rounded-lg shadow-inner mb-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 shrink-0 opacity-70">
                       <svg className="w-16 h-16 text-gray-400 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                      <span className="text-gray-400 font-bold font-serif text-2xl">Slot # {selectedEmptySlotInfo.slotNumber}</span>
+                      <span className="text-gray-400 font-bold font-serif text-2xl">빈 슬롯 # {selectedEmptySlotInfo.slotNumber}</span>
                     </div>
 
                     <div className="text-center mt-4">
@@ -647,16 +653,16 @@ export default function Encyclopedia(): JSX.Element {
                   <div className="flex flex-col h-full animate-in fade-in duration-300">
                     <h2 className="text-3xl font-bold font-serif text-gray-800 mb-2">{selectedAlbum.name}</h2>
                     <p className="text-gray-500 text-sm mb-6 pb-4 border-b border-gray-300">
-                      Category: {selectedAlbum.categoryName} <br />
-                      Layout: {selectedAlbum.gridX} x {selectedAlbum.gridY} Grid
+                      카테고리: {selectedAlbum.categoryName} <br />
+                      레이아웃: {selectedAlbum.gridX} x {selectedAlbum.gridY} 그리드
                     </p>
                     <p className="text-gray-700 font-serif leading-relaxed flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                      {selectedAlbum.description || "No description written in this volume."}
+                      {selectedAlbum.description || "이 도감에 작성된 설명이 없습니다."}
                     </p>
 
                     <div className="mt-auto bg-white/50 p-4 rounded border border-gray-200 shrink-0">
                       <div className="flex justify-between font-bold text-gray-700 mb-2">
-                        <span>Collection Progress</span>
+                        <span>수집 진행률</span>
                         <span>{selectedAlbum.collectedItems} / {selectedAlbum.totalItems}</span>
                       </div>
                       <div className="w-full bg-gray-300 rounded-full h-3">
@@ -675,26 +681,45 @@ export default function Encyclopedia(): JSX.Element {
             <div className="w-full md:w-1/2 h-full p-8 bg-gradient-to-l from-[#fdfbf7] to-[#f4f1ea] overflow-y-auto relative custom-scrollbar flex flex-col">
               <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black/10 to-transparent pointer-events-none z-10"></div> {/* Spine shadow */}
 
-              {/* Edge Click Zones for Pagination */}
               <div
                 className={`absolute left-0 top-16 bottom-0 w-16 z-20 flex items-center justify-start transition-opacity bg-gradient-to-r from-black/5 to-transparent
-                ${currentPage > 1 ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                ${currentPage > 1 && !isFlipping ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => {
+                  if (currentPage > 1 && !isFlipping) {
+                    setIsFlipping('prev');
+                    setTimeout(() => {
+                      setCurrentPage(p => Math.max(1, p - 1));
+                    }, 300); // 절반 (90도)에서 내용 변경
+                    setTimeout(() => setIsFlipping(null), 600); // 애니메이션 끝
+                  }
+                }}
               >
                 <svg className="w-10 h-10 text-gray-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
               </div>
 
               <div
                 className={`absolute right-0 top-16 bottom-0 w-16 z-20 flex items-center justify-end transition-opacity bg-gradient-to-l from-black/5 to-transparent
-                ${currentPage < Math.ceil((selectedAlbum.gridX * selectedAlbum.gridY) / itemsPerPage) ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
-                onClick={() => setCurrentPage(p => Math.min(Math.ceil((selectedAlbum.gridX * selectedAlbum.gridY) / itemsPerPage), p + 1))}
+                ${currentPage < Math.ceil((selectedAlbum.gridX * selectedAlbum.gridY) / itemsPerPage) && !isFlipping ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => {
+                  const maxPage = Math.ceil((selectedAlbum.gridX * selectedAlbum.gridY) / itemsPerPage);
+                  if (currentPage < maxPage && !isFlipping) {
+                    setIsFlipping('next');
+                    setTimeout(() => {
+                      setCurrentPage(p => Math.min(maxPage, p + 1));
+                    }, 300); // 절반 (90도)에서 내용 변경
+                    setTimeout(() => setIsFlipping(null), 600); // 애니메이션 끝
+                  }
+                }}
               >
                 <svg className="w-10 h-10 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
 
-              <div className="relative z-10 w-full flex flex-col items-center flex-1">
+              <div className={`relative z-10 w-full flex flex-col items-center flex-1 origin-left
+                ${isFlipping === 'next' ? 'animate-[pageFlipNext_0.6s_ease-in-out]' : ''}
+                ${isFlipping === 'prev' ? 'animate-[pageFlipPrev_0.6s_ease-in-out]' : ''}
+              `}>
                 <div className="w-full flex justify-between items-center mb-6 px-4">
-                  <h3 className="text-xl font-bold font-serif text-gray-800">Collection Items</h3>
+                  <h3 className="text-xl font-bold font-serif text-gray-800">컬렉션 아이템</h3>
 
                   <div className="flex items-center gap-4">
                     <span className="text-gray-500 font-serif font-semibold">
@@ -705,10 +730,33 @@ export default function Encyclopedia(): JSX.Element {
                       className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm font-semibold shadow transition-colors flex items-center gap-1 z-30 relative"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                      Add Card
+                      카드 추가
                     </button>
                   </div>
                 </div>
+
+                {/* Official Collection Progress Bar */}
+                {selectedAlbum.isOfficial && (
+                  <div className="w-full px-4 mb-4">
+                    <div className="flex justify-between items-center text-sm font-semibold text-gray-600 mb-1">
+                      <span>보유 현황</span>
+                      <span>
+                        {selectedAlbum.collectedItems} / {selectedAlbum.totalItems}
+                        {selectedAlbum.totalItems > 0 && (
+                          <span className="ml-1 text-blue-600">
+                            ({Math.round((selectedAlbum.collectedItems / selectedAlbum.totalItems) * 100)}%)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-500 h-2.5 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${calculateProgress(selectedAlbum.collectedItems, selectedAlbum.totalItems)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Grid 3x3 (9 slots) Layout */}
                 <div
@@ -728,6 +776,9 @@ export default function Encyclopedia(): JSX.Element {
                     const item = collectionItems.find(c => c.itemNumber === slotNumber) || collectionItems[slotNumber - 1];
 
                     if (item) {
+                      const isOfficial = selectedAlbum.isOfficial
+                      const isOwned = item.isOwned ?? true // 커스텀 도감은 항상 보유로 처리
+
                       return (
                         <div
                           key={slotNumber}
@@ -736,10 +787,9 @@ export default function Encyclopedia(): JSX.Element {
                             ${selectedCardItem?.itemId === item.itemId ? 'ring-4 ring-blue-500 scale-105 z-10' : ''}`}
                           title={item.name}
                         >
-                          {/* 홀로그램 반사광 효과 (보유 여부에 따라 다르게 줄 수 있음) */}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
-
-                          <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center">
+                          {/* 이미지 영역 */}
+                          <div className={`w-full h-full bg-gray-100 flex flex-col items-center justify-center transition-all
+                            ${isOfficial && !isOwned ? 'grayscale opacity-70' : ''}`}>
                             {item.imageUrl ? (
                               <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
                             ) : (
@@ -750,6 +800,26 @@ export default function Encyclopedia(): JSX.Element {
                               </div>
                             )}
                           </div>
+
+                          {/* 보유 여부 배지 (공식 도감만) */}
+                          {isOfficial && (
+                            <span className={`absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow z-20
+                              ${isOwned ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}`}>
+                              {isOwned ? '보유중' : '미보유'}
+                            </span>
+                          )}
+
+                          {/* 미보유 hover 오버레이 (공식 도감만) */}
+                          {isOfficial && !isOwned && (
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                              <span className="text-white text-xs font-bold bg-gray-700/80 px-2 py-1 rounded">미획득</span>
+                            </div>
+                          )}
+
+                          {/* 보유 카드 홀로그램 효과 */}
+                          {(!isOfficial || isOwned) && (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+                          )}
                         </div>
                       )
                     }
@@ -781,35 +851,35 @@ export default function Encyclopedia(): JSX.Element {
       {showCustomModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Custom Encyclopedia Entry</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">새 커스텀 도감 만들기</h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Right side - Form */}
               <div className="col-span-1 lg:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Entry Details</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">도감 상세 정보</h3>
 
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Encyclopedia Name <span className="text-red-500">*</span>
+                      도감 이름 <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      placeholder="e.g. My Pokemon Stickers Series 1"
+                      placeholder="예: 내 포켓몬 띠부씰 1탄 모음"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description (Optional)
+                      설명 (선택사항)
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Describe this collection..."
+                      placeholder="상세 내용을 적어주세요..."
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
@@ -817,14 +887,14 @@ export default function Encyclopedia(): JSX.Element {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category <span className="text-red-500">*</span>
+                      카테고리 <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={selectedCategoryId}
                       onChange={(e) => setSelectedCategoryId(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     >
-                      <option value="">Select a category</option>
+                      <option value="">카테고리 선택</option>
                       {categories.map(cat => (
                         <option key={cat.categoryId} value={cat.categoryId}>
                           {cat.name}
@@ -836,7 +906,7 @@ export default function Encyclopedia(): JSX.Element {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Grid Width (X)
+                        가로 칸 수 (X)
                       </label>
                       <input
                         type="number"
@@ -849,7 +919,7 @@ export default function Encyclopedia(): JSX.Element {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Grid Height (Y)
+                        세로 칸 수 (Y)
                       </label>
                       <input
                         type="number"
@@ -861,7 +931,7 @@ export default function Encyclopedia(): JSX.Element {
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Defines the visual grid layout (e.g. 3x12 layout)</p>
+                  <p className="text-xs text-gray-500 mt-1">책에 들어갈 카드 슬롯 그리드를 지정합니다. (예: 가로 3 x 세로 12 레이아웃)</p>
 
                   <div className="pt-2">
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -876,8 +946,8 @@ export default function Encyclopedia(): JSX.Element {
                         <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isPublic ? 'transform translate-x-4' : ''}`}></div>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-900">Make Public</span>
-                        <p className="text-xs text-gray-500">Allow other users to view this collection frame.</p>
+                        <span className="text-sm font-medium text-gray-900">도감 공개</span>
+                        <p className="text-xs text-gray-500">다른 유저도 이 도감 프레임을 볼 수 있도록 허용합니다.</p>
                       </div>
                     </label>
                   </div>
@@ -891,13 +961,13 @@ export default function Encyclopedia(): JSX.Element {
                 onClick={handleCloseModal}
                 className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
               >
-                Cancel
+                취소
               </button>
               <button
                 onClick={handleSaveCustomEntry}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Save Entry
+                도감 저장
               </button>
             </div>
           </div>
@@ -908,62 +978,62 @@ export default function Encyclopedia(): JSX.Element {
       {isAddCardModalOpen && selectedAlbum && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2 font-serif">Register New Card</h2>
-            <p className="text-sm text-gray-500 mb-6">Adding to <span className="font-semibold">{selectedAlbum.name}</span></p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 font-serif">새 카드 등록</h2>
+            <p className="text-sm text-gray-500 mb-6"><span className="font-semibold">{selectedAlbum.name}</span> 에 추가 중</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Card Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">카드 이름 *</label>
                 <input
                   type="text"
                   value={cardName}
                   onChange={(e) => setCardName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                  placeholder="E.g., Holographic Pikachu"
+                  placeholder="예: 홀로그램 피카츄"
                 />
               </div>
 
               <div className="flex gap-4">
                 <div className="w-1/2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Rarity</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">등급 (Rarity)</label>
                   <select
                     value={cardRarity}
                     onChange={(e) => setCardRarity(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
-                    <option value="COMMON">Common</option>
-                    <option value="RARE">Rare</option>
-                    <option value="EPIC">Epic</option>
-                    <option value="LEGENDARY">Legendary</option>
+                    <option value="COMMON">일반 (Common)</option>
+                    <option value="RARE">레어 (Rare)</option>
+                    <option value="EPIC">에픽 (Epic)</option>
+                    <option value="LEGENDARY">전설 (Legendary)</option>
                   </select>
                 </div>
                 <div className="w-1/2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchased Price (₩)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">구매 가격 (₩)</label>
                   <input
                     type="number"
                     value={cardPrice}
                     onChange={(e) => setCardPrice(e.target.value ? Number(e.target.value) : '')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                    placeholder="E.g., 5000"
+                    placeholder="예: 5000"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between items-end mb-1">
-                  <label className="block text-sm font-medium text-gray-700">Image Source</label>
+                  <label className="block text-sm font-medium text-gray-700">이미지 첨부</label>
                   <div className="flex bg-gray-100 rounded-lg p-0.5">
                     <button
                       className={`text-xs px-2 py-1 rounded-md transition-colors ${imageInputMode === 'file' ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setImageInputMode('file')}
                     >
-                      File Upload
+                      파일 업로드
                     </button>
                     <button
                       className={`text-xs px-2 py-1 rounded-md transition-colors ${imageInputMode === 'url' ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setImageInputMode('url')}
                     >
-                      Web URL
+                      웹 URL
                     </button>
                   </div>
                 </div>
@@ -975,8 +1045,8 @@ export default function Encyclopedia(): JSX.Element {
                         <svg className="w-6 h-6 mb-2 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                           <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                         </svg>
-                        <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
-                        <p className="text-xs text-gray-500">PNG, JPG or WEBP</p>
+                        <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">업로드하려면 클릭하세요</span></p>
+                        <p className="text-xs text-gray-500">PNG, JPG, WEBP 지원</p>
                       </div>
                       <input
                         type="file"
@@ -997,26 +1067,26 @@ export default function Encyclopedia(): JSX.Element {
                     value={cardImageUrl}
                     onChange={(e) => setCardImageUrl(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
-                    placeholder="https://example.com/image.png (Optional)"
+                    placeholder="https://example.com/image.png (선택사항)"
                   />
                 )}
 
                 {imageInputMode === 'file' && cardImageFile && (
                   <div className="mt-2 text-xs text-green-600 flex items-center gap-1 bg-green-50 p-1.5 rounded border border-green-200">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                    Selected: {cardImageFile.name}
+                    선택된 파일: {cardImageFile.name}
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Official Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">상세 정보 및 메모</label>
                 <textarea
                   value={cardDescription}
                   onChange={(e) => setCardDescription(e.target.value)}
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none"
-                  placeholder="Official details about this card"
+                  placeholder="카드에 대한 설명이나 특징을 기록해주세요..."
                 />
               </div>
 
@@ -1027,7 +1097,7 @@ export default function Encyclopedia(): JSX.Element {
                   onChange={(e) => setCardNote(e.target.value)}
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none bg-yellow-50"
-                  placeholder="Where did you get it? Any damages?"
+                  placeholder="어디서 구했나요? 특징이나 상태를 적어주세요."
                 />
               </div>
             </div>
@@ -1049,7 +1119,7 @@ export default function Encyclopedia(): JSX.Element {
                   className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
                   disabled={isSubmitting || isAiAnalyzing}
                 >
-                  Cancel
+                  취소
                 </button>
                 <button
                   onClick={handleAddCardSubmit}
@@ -1057,13 +1127,29 @@ export default function Encyclopedia(): JSX.Element {
                   className={`px-5 py-2 text-white rounded-lg font-medium shadow-md transition-all ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
                     }`}
                 >
-                  {isSubmitting ? 'Registering...' : 'Add to Inventory'}
+                  {isSubmitting ? '등록 중...' : '인벤토리에 추가'}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Embedded CSS for Page Flip Animation */}
+      <style>{`
+        @keyframes pageFlipNext {
+          0% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+          49% { transform: perspective(1500px) rotateY(-90deg); opacity: 0; }
+          50% { transform: perspective(1500px) rotateY(90deg); opacity: 0; }
+          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+        }
+        @keyframes pageFlipPrev {
+          0% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+          49% { transform: perspective(1500px) rotateY(90deg); opacity: 0; }
+          50% { transform: perspective(1500px) rotateY(-90deg); opacity: 0; }
+          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -2,6 +2,7 @@ package com.goodsplatform.repository;
 
 import com.goodsplatform.dto.request.TransactionSearchCondition;
 import com.goodsplatform.entity.QTransaction;
+import com.goodsplatform.entity.QUser;
 import com.goodsplatform.entity.Transaction;
 import com.goodsplatform.entity.TransactionType;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -26,15 +27,17 @@ public class TransactionRepositoryCustomImpl implements TransactionRepositoryCus
         QTransaction t = QTransaction.transaction;
         com.goodsplatform.entity.QInventoryItem inv = com.goodsplatform.entity.QInventoryItem.inventoryItem;
         com.goodsplatform.entity.QCollectionItem item = com.goodsplatform.entity.QCollectionItem.collectionItem;
+        QUser seller = new QUser("seller");
+        QUser buyer = new QUser("buyer");
 
-        // Base query with pagination (join fetched with inventory item and master
-        // collection item for display)
         List<Transaction> content = queryFactory
                 .selectFrom(t)
                 .leftJoin(t.inventory, inv).fetchJoin()
-                .leftJoin(inv.item, item).fetchJoin() // CollectionItem (Master)
+                .leftJoin(inv.item, item).fetchJoin()
+                .leftJoin(t.seller, seller)
+                .leftJoin(t.buyer, buyer)
                 .where(
-                        userEq(userId),
+                        userEq(userId, seller, buyer),
                         typeEq(condition.getType()),
                         dateBetween(condition.getStartDate(), condition.getEndDate()),
                         platformEq(condition.getPlatform()))
@@ -43,12 +46,15 @@ public class TransactionRepositoryCustomImpl implements TransactionRepositoryCus
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // Total count query
+        QUser sellerC = new QUser("sellerC");
+        QUser buyerC = new QUser("buyerC");
         Long total = queryFactory
                 .select(t.count())
                 .from(t)
+                .leftJoin(t.seller, sellerC)
+                .leftJoin(t.buyer, buyerC)
                 .where(
-                        userEq(userId),
+                        userEq(userId, sellerC, buyerC),
                         typeEq(condition.getType()),
                         dateBetween(condition.getStartDate(), condition.getEndDate()),
                         platformEq(condition.getPlatform()))
@@ -63,26 +69,27 @@ public class TransactionRepositoryCustomImpl implements TransactionRepositoryCus
         QTransaction t = QTransaction.transaction;
         com.goodsplatform.entity.QInventoryItem inv = com.goodsplatform.entity.QInventoryItem.inventoryItem;
         com.goodsplatform.entity.QCollectionItem item = com.goodsplatform.entity.QCollectionItem.collectionItem;
+        QUser seller = new QUser("seller");
+        QUser buyer = new QUser("buyer");
 
         return queryFactory
                 .selectFrom(t)
                 .leftJoin(t.inventory, inv).fetchJoin()
                 .leftJoin(inv.item, item).fetchJoin()
+                .leftJoin(t.seller, seller)
+                .leftJoin(t.buyer, buyer)
                 .where(
-                        userEq(userId),
+                        userEq(userId, seller, buyer),
                         typeEq(condition.getType()),
                         dateBetween(condition.getStartDate(), condition.getEndDate()),
                         platformEq(condition.getPlatform()))
                 .fetch();
     }
 
-    private BooleanExpression userEq(Long userId) {
+    private BooleanExpression userEq(Long userId, QUser seller, QUser buyer) {
         if (userId == null)
             return null;
-        // User could be either buyer or seller.
-        // We consider the transaction relevant to the user if they are either party.
-        return QTransaction.transaction.seller.userId.eq(userId)
-                .or(QTransaction.transaction.buyer.userId.eq(userId));
+        return seller.userId.eq(userId).or(buyer.userId.eq(userId));
     }
 
     private BooleanExpression typeEq(TransactionType type) {

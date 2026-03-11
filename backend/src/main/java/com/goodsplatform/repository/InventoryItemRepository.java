@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long>, InventoryItemRepositoryCustom {
 
@@ -33,4 +34,10 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
      * 특정 유저가 가진 특정 도감 아이템 정보 1건 조회
      */
     Optional<InventoryItem> findFirstByUser_UserIdAndItem_ItemId(Long userId, Long collectionItemId);
+
+    /**
+     * 특정 유저가 특정 도감에서 보유한 CollectionItem ID 목록 일괄 조회 (N+1 방지)
+     */
+    @Query("SELECT i.item.itemId FROM InventoryItem i WHERE i.user.userId = :userId AND i.item.collection.collectionId = :collectionId")
+    Set<Long> findOwnedItemIdsByUserIdAndCollectionId(@Param("userId") Long userId, @Param("collectionId") Long collectionId);
 }
