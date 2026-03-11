@@ -93,7 +93,7 @@ public class CollectionService {
         String fallbackThumbnail = null;
         if (collection.getThumbnailUrl() == null || collection.getThumbnailUrl().trim().isEmpty()) {
             fallbackThumbnail = inventoryItemRepository
-                    .findFirstByItem_Collection_CollectionIdAndUserImageUrlIsNotNullOrderByInventoryIdAsc(collectionId)
+                    .findFirstByCollection_CollectionIdAndUserImageUrlIsNotNullAndDeletedAtIsNullOrderByInventoryIdAsc(collectionId)
                     .map(item -> item.getUserImageUrl())
                     .orElse(null);
         }

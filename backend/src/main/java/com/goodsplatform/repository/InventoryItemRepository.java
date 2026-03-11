@@ -45,4 +45,9 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
      */
     @Query("SELECT i.item.itemId FROM InventoryItem i WHERE i.user.userId = :userId AND i.item.collection.collectionId = :collectionId AND i.deletedAt IS NULL")
     Set<Long> findOwnedItemIdsByUserIdAndCollectionId(@Param("userId") Long userId, @Param("collectionId") Long collectionId);
+
+    /**
+     * 특정 도감 내에서 유저가 직접 업로드한 이미지가 있는 첫 번째 아이템 조회 (썸네일 fallback용, 삭제되지 않은 것만)
+     */
+    Optional<InventoryItem> findFirstByCollection_CollectionIdAndUserImageUrlIsNotNullAndDeletedAtIsNullOrderByInventoryIdAsc(Long collectionId);
 }
