@@ -52,8 +52,8 @@ public class CollectionService {
 
         Collection savedCollection = collectionRepository.save(collection);
 
-        // 방금 생성한 빈 도감이므로 구성 요소는 0, 가진 개수도 0
-        return CollectionProgressResponseDto.from(savedCollection, 0, 0);
+        // 방금 생성한 빈 도감이므로 구성 요소는 0, 가진 개수도 0, 썸네일도 없음
+        return CollectionProgressResponseDto.from(savedCollection, 0, 0, null);
     }
 
     /**
@@ -78,7 +78,7 @@ public class CollectionService {
     }
 
     /**
-     * 도감 진척도 상세 조회
+     * 도감 진척도 상세 조회 (썸네일 fallback 포함)
      */
     public CollectionProgressResponseDto getCollectionProgress(Collection collection, User user) {
         Long collectionId = collection.getCollectionId();
@@ -89,7 +89,16 @@ public class CollectionService {
         // 2. 해당 도감에 속한 카드 중 내가(User) 보유하고 있는 개수
         long collectedItems = countCollectedItems(collectionId, user.getUserId());
 
-        return CollectionProgressResponseDto.from(collection, (int) totalItems, (int) collectedItems);
+        // 3. 썸네일 처리 로직
+        String fallbackThumbnail = null;
+        if (collection.getThumbnailUrl() == null || collection.getThumbnailUrl().trim().isEmpty()) {
+            fallbackThumbnail = inventoryItemRepository
+                    .findFirstByItem_Collection_CollectionIdAndUserImageUrlIsNotNullOrderByInventoryIdAsc(collectionId)
+                    .map(item -> item.getUserImageUrl())
+                    .orElse(null);
+        }
+
+        return CollectionProgressResponseDto.from(collection, (int) totalItems, (int) collectedItems, fallbackThumbnail);
     }
 
     private long countItemsInCollection(Long collectionId) {
@@ -98,6 +107,14 @@ public class CollectionService {
 
     private long countCollectedItems(Long collectionId, Long userId) {
         return inventoryItemRepository.countDistinctItemsByCollectionAndUser(collectionId, userId);
+    }
+
+    @Transactional
+    public void updateCollectionThumbnail(Long collectionId, String thumbnailUrl, User user) {
+        Collection collection = getCollectionById(collectionId);
+        // 향후 권한 체크가 필요하면 여기서 추가 (예: 커스텀 도감 소유자만 변경 가능, 공식 도감은 관리자만 등)
+        collection.updateThumbnailUrl(thumbnailUrl);
+        collectionRepository.save(collection);
     }
 
     public Collection getCollectionById(Long collectionId) {

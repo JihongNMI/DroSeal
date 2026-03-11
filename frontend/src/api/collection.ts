@@ -28,6 +28,7 @@ export interface CollectionProgressResponseDto {
     categoryName: string;
     name: string;
     description?: string;
+    thumbnailUrl?: string;
     isOfficial: boolean;
     isPublic: boolean;
     gridX: number;
@@ -118,5 +119,10 @@ export const searchCollectionItems = async (
 
 export const updateCollectionItemImage = async (itemId: number, imageUrl: string): Promise<CollectionItemResponseDto> => {
     const response = await apiClient.patch<CollectionItemResponseDto>(`/collection-items/${itemId}`, { imageUrl });
+    return response.data;
+};
+
+export const updateCollectionThumbnail = async (collectionId: number, thumbnailUrl: string): Promise<void> => {
+    const response = await apiClient.patch(`/collections/${collectionId}/thumbnail`, { thumbnailUrl });
     return response.data;
 };

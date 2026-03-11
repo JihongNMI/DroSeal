@@ -63,4 +63,13 @@ public class CollectionController {
                 pageable, user);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/thumbnail")
+    public ResponseEntity<Void> updateCollectionThumbnail(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody com.goodsplatform.dto.request.CollectionThumbnailUpdateRequestDto request) {
+        User user = getCurrentMockUser();
+        collectionService.updateCollectionThumbnail(id, request.getThumbnailUrl(), user);
+        return ResponseEntity.ok().build();
+    }
 }

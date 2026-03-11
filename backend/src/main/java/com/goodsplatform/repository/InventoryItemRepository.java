@@ -36,6 +36,11 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     Optional<InventoryItem> findFirstByUser_UserIdAndItem_ItemId(Long userId, Long collectionItemId);
 
     /**
+     * 특정 도감에 속한 아이템 중, 이미지가 등록되어 있는 첫 번째 인벤토리 아이템을 조회 (썸네일 fallback용)
+     */
+    Optional<InventoryItem> findFirstByItem_Collection_CollectionIdAndUserImageUrlIsNotNullOrderByInventoryIdAsc(Long collectionId);
+
+    /**
      * 특정 유저가 특정 도감에서 보유한 CollectionItem ID 목록 일괄 조회 (N+1 방지)
      */
     @Query("SELECT i.item.itemId FROM InventoryItem i WHERE i.user.userId = :userId AND i.item.collection.collectionId = :collectionId")

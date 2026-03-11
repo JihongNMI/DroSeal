@@ -6,6 +6,7 @@ import {
   fetchCollectionItems,
   fetchCollectionItemsWithOwnership,
   updateCollectionItemImage,
+  updateCollectionThumbnail,
   CollectionItemResponseDto,
   CollectionProgressResponseDto
 } from '../api/collection'
@@ -426,47 +427,69 @@ export default function Encyclopedia(): JSX.Element {
 
                 {/* Bookshelf Grid */}
                 <div className="flex flex-wrap gap-6 px-4">
-                  {cols.map(col => (
-                    <div
-                      key={col.collectionId}
-                      onClick={() => handleOpenAlbum(col)}
-                      className="relative w-40 h-56 cursor-pointer group perspective-1000"
-                    >
-                      {/* Book Cover Design */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-700 to-blue-900 rounded-r-lg rounded-l-sm shadow-[5px_5px_15px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[5px_15px_20px_rgba(0,0,0,0.4)] border-l-8 border-indigo-900 flex flex-col items-center justify-between p-4">
+                  {cols.map(col => {
+                    const actualProgress = calculateProgress(col.collectedItems, col.totalItems);
+                    const isComplete = actualProgress === 100 && col.totalItems > 0;
 
-                        {/* Book Binding/Ribbon */}
-                        <div className="absolute left-0 top-6 w-full h-8 bg-indigo-900 opacity-30 shadow-inner"></div>
-                        <div className="absolute left-0 bottom-6 w-full h-8 bg-indigo-900 opacity-30 shadow-inner"></div>
+                    return (
+                      <div
+                        key={col.collectionId}
+                        onClick={() => handleOpenAlbum(col)}
+                        className={`group relative w-52 h-72 rounded-r-lg rounded-l-sm overflow-hidden transition-all duration-500 hover:-translate-y-4 cursor-pointer
+                                        ${isComplete 
+                                          ? 'shadow-[0_0_20px_rgba(250,204,21,0.4)] border-2 border-yellow-500/50' 
+                                          : 'bg-gray-900 shadow-2xl'}`}
+                      >
+                        {/*  이미지 레이어: 100%일 땐 상시 컬러, 아닐 땐 호버 시에만 컬러 */}
+                        <img
+                          src={col.thumbnailUrl || "https://via.placeholder.com/160x224?text=No+Image"}
+                          alt={col.name}
+                          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out
+                                     ${isComplete 
+                                       ? 'grayscale-0 opacity-100 brightness-110 scale-100' // 완성 시: 상시 밝은 컬러
+                                       : 'grayscale opacity-70 brightness-75 scale-110 group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110 group-hover:scale-100' // 미완성 시: 호버 시 전환
+                                     }`}
+                        />
 
-                        {/* Title Wrapper */}
-                        <div className="z-10 text-center w-full mt-2">
-                          <h3 className="font-bold text-white text-md font-serif leading-tight line-clamp-2 drop-shadow-md">
-                            {col.name}
-                          </h3>
-                          {col.isOfficial && (
-                            <span className="inline-block mt-1 text-[10px] uppercase tracking-wider text-yellow-300 font-bold border border-yellow-300 px-1 rounded">공식</span>
-                          )}
-                        </div>
-
-                        {/* Progress Indicator on Cover */}
-                        <div className="z-10 w-full mb-1">
-                          <div className="text-center text-xs text-indigo-200 font-semibold mb-1">
-                            {calculateProgress(col.collectedItems, col.totalItems).toFixed(0)}%
+                        {/* 텍스트 및 UI 레이어 */}
+                        <div className="absolute inset-0 z-10 p-5 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-black/30">
+                          <div>
+                            <h3 className={`font-extrabold text-lg drop-shadow-lg transition-transform duration-500 group-hover:scale-105 origin-left line-clamp-2 ${isComplete ? 'text-yellow-400' : 'text-white'}`}>
+                              {col.name}
+                            </h3>
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              {/* '공식' 뱃지 */}
+                              {col.isOfficial && (
+                                <span className="inline-block px-2 py-0.5 bg-yellow-400 text-[10px] font-black text-blue-900 rounded-sm">
+                                  OFFICIAL
+                                </span>
+                              )}
+                              {/* 완료 뱃지 */}
+                              {isComplete && (
+                                <span className="inline-block px-2 py-0.5 bg-yellow-500 text-[10px] text-black font-black rounded-sm animate-pulse">
+                                  COMPLETE
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="w-full bg-indigo-950 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className="bg-yellow-400 h-full rounded-full"
-                              style={{ width: `${calculateProgress(col.collectedItems, col.totalItems)}%` }}
-                            />
+                          
+                          {/* 진행도 바: 100%일 땐 더 화려하게 반짝임 */}
+                          <div className="w-full">
+                            <div className="flex justify-between items-end mb-1.5">
+                              <span className={`text-[10px] font-bold uppercase tracking-wider ${isComplete ? 'text-yellow-400/80' : 'text-white/70'}`}>Progress</span>
+                              <span className="text-yellow-400 text-xs font-black">
+                                {actualProgress.toFixed(0)}%
+                              </span>
+                            </div>
+                            <div className={`w-full h-1.5 rounded-full overflow-hidden backdrop-blur-sm ${isComplete ? 'bg-yellow-900/50' : 'bg-white/20'}`}>
+                              <div className={`h-full transition-all duration-1000 ${isComplete ? 'bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 shadow-[0_0_15px_rgba(250,204,21,1)]' : 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]'}`} 
+                                   style={{ width: `${actualProgress}%` }}></div>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Fake Pages sticking out on the right (Book depth) */}
-                      <div className="absolute right-[-4px] top-[2px] bottom-[2px] w-1 bg-white rounded-r-sm shadow-inner z-[-1]"></div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -531,15 +554,37 @@ export default function Encyclopedia(): JSX.Element {
                     </div>
 
                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                      <h2 className="text-3xl font-bold font-serif text-gray-800 mb-2 leading-tight">{selectedCardItem.name}</h2>
-                      <div className="mb-4">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm border
-                          ${selectedCardItem.rarity === 'LEGENDARY' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                            selectedCardItem.rarity === 'EPIC' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                              selectedCardItem.rarity === 'RARE' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                                'bg-gray-100 text-gray-800 border-gray-300'}`}>
-                          {selectedCardItem.rarity || 'COMMON'}
-                        </span>
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h2 className="text-3xl font-bold font-serif text-gray-800 mb-2 leading-tight">{selectedCardItem.name}</h2>
+                          <div>
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm border
+                              ${selectedCardItem.rarity === 'LEGENDARY' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                selectedCardItem.rarity === 'EPIC' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                                  selectedCardItem.rarity === 'RARE' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    'bg-gray-100 text-gray-800 border-gray-300'}`}>
+                              {selectedCardItem.rarity || 'COMMON'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {selectedAlbum && selectedCardItem.imageUrl && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateCollectionThumbnail(selectedAlbum.collectionId, selectedCardItem.imageUrl!);
+                                alert('이 이미지가 도감의 대표 이미지로 설정되었습니다!');
+                                loadCollections(); // 메인 화면(책꽂이)의 이미지를 새로고침하기 위해 호출
+                              } catch (e) {
+                                alert('대표 이미지 설정에 실패했습니다.');
+                              }
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow transition-colors flex items-center gap-1"
+                            title="이 카드의 이미지를 현재 도감의 겉표지(썸네일)로 사용합니다."
+                          >
+                            표지로 설정
+                          </button>
+                        )}
                       </div>
 
                       {selectedCardItem.description && (
@@ -562,7 +607,7 @@ export default function Encyclopedia(): JSX.Element {
                               onClick={() => setIsEditingNote(true)}
                               className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-yellow-100 transition-colors"
                             >
-                              ✏️ 수정
+                              수정
                             </button>
                           )}
                         </div>
@@ -602,7 +647,7 @@ export default function Encyclopedia(): JSX.Element {
                                 disabled={isSavingNote}
                                 className="px-3 py-1 text-xs font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded transition-colors"
                               >
-                                {isSavingNote ? '저장 중...' : '💾 저장'}
+                                {isSavingNote ? '저장 중...' : '저장'}
                               </button>
                             </div>
                           </div>

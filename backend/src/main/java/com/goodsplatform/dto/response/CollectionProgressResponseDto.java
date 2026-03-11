@@ -14,6 +14,7 @@ public class CollectionProgressResponseDto {
     private String categoryName;
     private String name;
     private String description;
+    private String thumbnailUrl;
     private Boolean isOfficial;
     private Boolean isPublic;
     private Integer gridX;
@@ -25,7 +26,7 @@ public class CollectionProgressResponseDto {
     // 유저가 보유한 이 도감 소속 인벤토리 아이템 종류 개수 (분자)
     private Integer collectedItems;
 
-    public static CollectionProgressResponseDto from(Collection collection, int total, int collected) {
+    public static CollectionProgressResponseDto from(Collection collection, int total, int collected, String fallbackThumbnailUrl) {
         Long firstCategoryId = null;
         String firstCategoryName = "Unknown";
 
@@ -35,12 +36,17 @@ public class CollectionProgressResponseDto {
             firstCategoryName = first.getName();
         }
 
+        String finalThumbnailUrl = (collection.getThumbnailUrl() != null && !collection.getThumbnailUrl().isBlank())
+                ? collection.getThumbnailUrl()
+                : fallbackThumbnailUrl;
+
         return CollectionProgressResponseDto.builder()
                 .collectionId(collection.getCollectionId())
                 .categoryId(firstCategoryId)
                 .categoryName(firstCategoryName)
                 .name(collection.getName())
                 .description(collection.getDescription())
+                .thumbnailUrl(finalThumbnailUrl)
                 .isOfficial(collection.getIsOfficial())
                 .isPublic(collection.getIsPublic())
                 .gridX(collection.getGridX())

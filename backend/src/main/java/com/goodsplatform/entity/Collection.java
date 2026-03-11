@@ -31,6 +31,9 @@ public class Collection {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "thumbnail_url", length = 500)
+    private String thumbnailUrl;
+
     @Column(name = "is_official")
     @Builder.Default
     private Boolean isOfficial = true;
@@ -54,4 +57,8 @@ public class Collection {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }
