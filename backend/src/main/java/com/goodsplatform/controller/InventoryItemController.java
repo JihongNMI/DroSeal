@@ -79,7 +79,7 @@ public class InventoryItemController {
         @PatchMapping("/{inventoryId}")
         public ResponseEntity<InventoryItemResponseDto> updateInventoryItemNoteAndPrice(
                         @PathVariable("inventoryId") Long inventoryId,
-                        @RequestBody com.goodsplatform.dto.request.InventoryItemUpdateRequestDto request) {
+                        @Valid @RequestBody com.goodsplatform.dto.request.InventoryItemUpdateRequestDto request) {
 
                 // TODO: 실제 Security 연동 시 @AuthenticationPrincipal 활용
                 User mockUser = userRepository.findByUsername("testUser")

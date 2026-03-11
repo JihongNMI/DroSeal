@@ -43,13 +43,13 @@ public class InventoryItemRepositoryCustomImpl implements InventoryItemRepositor
         JPAQuery<Long> countQuery = queryFactory
                 .select(inventoryItem.count())
                 .from(inventoryItem)
-                .leftJoin(inventoryItem.item, collectionItem)
-                .where(
+                .leftJoin(inventoryItem.item, collectionItem).where(
                         inventoryItem.user.eq(user),
                         keywordContains(condition.getKeyword()),
                         regTypeEq(condition.getRegType()));
 
-        return new PageImpl<>(content, pageable, countQuery.fetchOne() != null ? countQuery.fetchOne() : 0L);
+        Long count = countQuery.fetchOne();
+        return new PageImpl<>(content, pageable, count != null ? count : 0L);
     }
 
     private BooleanExpression keywordContains(String keyword) {

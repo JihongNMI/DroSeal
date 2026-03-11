@@ -1,6 +1,7 @@
 package com.goodsplatform.controller;
 
 import com.goodsplatform.dto.request.CollectionCreateRequestDto;
+import com.goodsplatform.dto.response.CollectionItemResponseDto;
 import com.goodsplatform.dto.response.CollectionProgressResponseDto;
 import com.goodsplatform.entity.User;
 import com.goodsplatform.repository.UserRepository;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/collections")
@@ -41,6 +44,13 @@ public class CollectionController {
         com.goodsplatform.entity.Collection collection = collectionService.getCollectionById(id);
         CollectionProgressResponseDto response = collectionService.getCollectionProgress(collection, user);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<CollectionItemResponseDto>> getCollectionItems(@PathVariable("id") Long id) {
+        User user = getCurrentMockUser();
+        List<CollectionItemResponseDto> items = collectionService.getCollectionItems(id, user);
+        return ResponseEntity.ok(items);
     }
 
     @GetMapping

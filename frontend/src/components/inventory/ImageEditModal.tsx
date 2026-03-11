@@ -102,8 +102,7 @@ export function ImageEditModal({ currentImageUrl, itemName, onSave, onCancel }: 
               <img
                 src={imageUrl}
                 alt="미리보기"
-                className="w-full max-h-64 object-contain rounded border"
-                onError={() => setImageUrl('')}
+                className="w-full max-h-64 object-contain rounded border bg-gray-50 flex items-center justify-center text-sm text-gray-400"
               />
             </div>
           )}

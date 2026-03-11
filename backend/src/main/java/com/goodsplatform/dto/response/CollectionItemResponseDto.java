@@ -21,6 +21,7 @@ public class CollectionItemResponseDto {
     private String description;
     private String imageHash;
     private Boolean isOfficial;
+    private Boolean isOwned;
     private LocalDateTime createdAt;
 
     public static CollectionItemResponseDto from(CollectionItem item) {
@@ -35,6 +36,23 @@ public class CollectionItemResponseDto {
                 .description(item.getDescription())
                 .imageHash(item.getImageHash())
                 .isOfficial(item.getIsOfficial())
+                .createdAt(item.getCreatedAt())
+                .build();
+    }
+
+    public static CollectionItemResponseDto from(CollectionItem item, boolean isOwned) {
+        return CollectionItemResponseDto.builder()
+                .itemId(item.getItemId())
+                .collectionId(item.getCollection() != null ? item.getCollection().getCollectionId() : null)
+                .itemNumber(item.getItemNumber())
+                .name(item.getName())
+                .rarity(item.getRarity())
+                .imageUrl(item.getImageUrl())
+                .vectorId(item.getVectorId())
+                .description(item.getDescription())
+                .imageHash(item.getImageHash())
+                .isOfficial(item.getIsOfficial())
+                .isOwned(isOwned)
                 .createdAt(item.getCreatedAt())
                 .build();
     }

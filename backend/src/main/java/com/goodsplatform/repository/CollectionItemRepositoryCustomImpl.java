@@ -51,7 +51,8 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()));
 
-        return new PageImpl<>(content, pageable, countQuery.fetchOne() != null ? countQuery.fetchOne() : 0L);
+        Long count = countQuery.fetchOne();
+        return new PageImpl<>(content, pageable, count != null ? count : 0L);
     }
 
     /**

@@ -79,6 +79,8 @@ export interface CollectionItemResponseDto {
     rarity?: string;
     imageUrl?: string;
     description?: string;
+    isOfficial?: boolean;
+    isOwned?: boolean;
 }
 
 export const createCollectionItem = async (request: CollectionItemCreateRequestDto): Promise<CollectionItemResponseDto> => {
@@ -86,11 +88,17 @@ export const createCollectionItem = async (request: CollectionItemCreateRequestD
     return response.data;
 };
 
-// 도감 아이템 전체 조회 (모든 아이템 가져오기)
+// 도감 아이템 전체 조회 (모든 아이템 가져오기) - 커스텀 도감용
 export const fetchCollectionItems = async (collectionId: number): Promise<PageableResponse<CollectionItemResponseDto>> => {
     const response = await apiClient.get<PageableResponse<CollectionItemResponseDto>>('/collection-items/search', {
         params: { collectionId, size: 200 }
     });
+    return response.data;
+};
+
+// 공식 도감 아이템 조회 (isOwned 보유 여부 포함) - 공식 도감(isOfficial=true)용
+export const fetchCollectionItemsWithOwnership = async (collectionId: number): Promise<CollectionItemResponseDto[]> => {
+    const response = await apiClient.get<CollectionItemResponseDto[]>(`/collections/${collectionId}/items`);
     return response.data;
 };
 

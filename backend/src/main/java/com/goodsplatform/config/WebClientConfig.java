@@ -13,4 +13,11 @@ public class WebClientConfig {
                 .baseUrl("https://generativelanguage.googleapis.com")
                 .build();
     }
+
+    @Bean(name = "fastApiWebClient")
+    public WebClient fastApiWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8000")
+                .build();
+    }
 }
