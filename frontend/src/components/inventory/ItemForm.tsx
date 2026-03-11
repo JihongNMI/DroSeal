@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { InventoryItem, InventoryCategory, Encyclopedia } from '../../types'
+
+const FORM_DRAFT_KEY = 'droseal_item_form_draft'
+const DEBOUNCE_DELAY = 800 // 800ms
 
 interface ItemFormProps {
   item?: InventoryItem // undefined for create, defined for edit
@@ -58,6 +61,71 @@ export function ItemForm({
   const [imageInputType, setImageInputType] = useState<'url' | 'upload'>('url')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Debounce timer ref
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Load draft from localStorage on mount (only for create mode)
+  useEffect(() => {
+    if (!isEditMode) {
+      const savedDraft = localStorage.getItem(FORM_DRAFT_KEY)
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft)
+          setName(draft.name || '')
+          setCategoryId(draft.categoryId || uncategorizedId)
+          setQuantity(draft.quantity || 1)
+          setPrice(draft.price || '')
+          setDate(draft.date || new Date().toISOString().split('T')[0])
+          setEncyclopediaId(draft.encyclopediaId || '')
+          setNotes(draft.notes || '')
+          setImageUrl(draft.imageUrl || '')
+          console.log('[ItemForm] Restored draft from localStorage')
+        } catch (e) {
+          console.error('[ItemForm] Failed to parse draft:', e)
+        }
+      }
+    }
+  }, [isEditMode, uncategorizedId])
+
+  // Auto-save draft to localStorage with debouncing (only for create mode)
+  useEffect(() => {
+    if (!isEditMode) {
+      // Clear previous timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        const draft = {
+          name,
+          categoryId,
+          quantity,
+          price,
+          date,
+          encyclopediaId,
+          notes,
+          imageUrl
+        }
+        localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(draft))
+        console.log('[ItemForm] Auto-saved draft to localStorage')
+      }, DEBOUNCE_DELAY)
+    }
+
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [name, categoryId, quantity, price, date, encyclopediaId, notes, imageUrl, isEditMode])
+
+  // Clear draft on unmount or successful submit
+  const clearDraft = () => {
+    localStorage.removeItem(FORM_DRAFT_KEY)
+    console.log('[ItemForm] Cleared draft from localStorage')
+  }
 
   // Handle image file upload
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,6 +223,11 @@ export function ItemForm({
     }
 
     onSubmit(itemData)
+    
+    // Clear draft after successful submit (only for create mode)
+    if (!isEditMode) {
+      clearDraft()
+    }
   }
 
   return (
@@ -362,7 +435,10 @@ export function ItemForm({
             </button>
             <button
               type="button"
-              onClick={onCancel}
+              onClick={() => {
+                clearDraft()
+                onCancel()
+              }}
               className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               취소
