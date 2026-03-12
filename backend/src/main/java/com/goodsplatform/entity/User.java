@@ -1,5 +1,6 @@
 package com.goodsplatform.entity;
 
+import com.goodsplatform.dto.request.ProfilePutRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,4 +26,9 @@ public class User extends BaseEntity {
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    public void updateProfile(ProfilePutRequestDto dto){
+        this.username = dto.getNickname();
+        this.passwordHash = dto.getPassword();
+    }
 }

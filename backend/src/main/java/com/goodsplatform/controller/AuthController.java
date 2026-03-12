@@ -3,6 +3,7 @@ package com.goodsplatform.controller;
 import com.goodsplatform.dto.JwtResponse;
 import com.goodsplatform.dto.LoginRequest;
 import com.goodsplatform.dto.SignupRequest;
+import com.goodsplatform.dto.request.ProfilePutRequestDto;
 import com.goodsplatform.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,14 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(String email) {
+        return ResponseEntity.ok(authService.getUserProfile(email));
+    }
+    @PutMapping("/profile")
+    public ResponseEntity<?> editUserProfile(@Valid @RequestBody ProfilePutRequestDto dto) {
+        authService.editProfile(dto);
+        return  ResponseEntity.ok("Profile updated successfully!");
     }
 }
