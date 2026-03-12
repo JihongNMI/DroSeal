@@ -50,4 +50,9 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
      * 특정 도감 내에서 유저가 직접 업로드한 이미지가 있는 첫 번째 아이템 조회 (썸네일 fallback용, 삭제되지 않은 것만)
      */
     Optional<InventoryItem> findFirstByCollection_CollectionIdAndUserImageUrlIsNotNullAndDeletedAtIsNullOrderByInventoryIdAsc(Long collectionId);
+
+    /**
+     * 특정 도감에 속하는 보유 아이템 목록 조회 (추후 JWT 유저 검증 추가 예정)
+     */
+    java.util.List<InventoryItem> findByItem_Collection_CollectionId(Long collectionId);
 }

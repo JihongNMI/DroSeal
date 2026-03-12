@@ -1,0 +1,74 @@
+/* ── Hero ────────────────────────────────────── */
+.hero { animation: fadeUp 0.6s ease both; }
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900;
+  color: var(--text-main); line-height: 1.2; transition: color 0.4s;
+}
+.hero h1 span { color: var(--purple); transition: color 0.4s; }
+.hero p { color: var(--text-sub); transition: color 0.4s; }
+
+/* ── Stats Bar ───────────────────────────────── */
+.stats-bar {
+  background: var(--stat-bg);
+  border: 1.5px solid var(--nav-border);
+  box-shadow: 0 4px 20px rgba(108,92,231,0.1);
+  animation: fadeUp 0.6s 0.1s ease both;
+  transition: background 0.5s, border-color 0.5s;
+}
+.stat { border-right: 1.5px solid var(--stat-border); }
+.stat:last-child { border-right: none; }
+.stat-num   { color: var(--purple); transition: color 0.4s; }
+.stat-label { color: var(--text-muted); transition: color 0.4s; }
+
+/* ── Feature Cards ───────────────────────────── */
+.cards-grid { animation: fadeUp 0.6s 0.2s ease both; }
+
+.feature-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  box-shadow: 0 4px 20px var(--card-shadow);
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1),
+              background 0.5s, border-color 0.5s;
+}
+.feature-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--c-a), var(--c-b));
+  opacity: 0; transition: opacity 0.3s;
+}
+.feature-card:hover { transform: translateY(-6px) scale(1.02); }
+.feature-card:hover::before { opacity: 0.07; }
+.dark .feature-card:hover {
+  box-shadow: 0 16px 40px rgba(120,80,200,0.3), 0 0 30px rgba(120,80,200,0.1);
+}
+
+.card-icon-box {
+  flex-shrink: 0; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--c-a), var(--c-b));
+  box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  position: relative; z-index: 1; overflow: hidden;
+  border: 2px dashed rgba(255,255,255,0.7);
+}
+
+.card-title { color: var(--text-main); transition: color 0.4s; }
+.card-desc  { color: var(--text-muted); transition: color 0.4s; }
+
+.card-arrow {
+  color: #d1c4f5; transition: transform 0.3s, color 0.3s;
+  position: relative; z-index: 1;
+}
+.feature-card:hover .card-arrow { transform: translateX(4px); color: var(--purple); }
+
+/* 카드별 색상 변수 */
+.card-encyclopedia { --c-a: #c9b8f5; --c-b: #a78bfa; }
+.card-inventory     { --c-a: #a8d8f0; --c-b: #60c4f0; }
+.card-accounting    { --c-a: #b5ead7; --c-b: #6edcaa; }
+.card-mypage        { --c-a: #ffb7c5; --c-b: #ff7eb3; }
+
+/* ── fadeUp ──────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

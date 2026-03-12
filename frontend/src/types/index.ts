@@ -111,6 +111,13 @@ export interface ProfileData {
   friendRequests: Friend[]
 }
 
+export interface FriendDisplay {
+  id: string
+  username: string
+  avatarUrl?: string
+  addedDate: Date
+}
+
 // Storage-related Types
 export interface StorageSchema<T = unknown> {
   version: number

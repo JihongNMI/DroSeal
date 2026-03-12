@@ -93,24 +93,24 @@ export default function AddCardModal({ album, onClose, onSuccess }: AddCardModal
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg border border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 font-serif">새 카드 등록</h2>
-        <p className="text-sm text-gray-500 mb-6"><span className="font-semibold">{album.name}</span> 에 추가 중</p>
+    <div className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm transition-colors">
+      <div className="bg-white dark:bg-[#1a1740] rounded-xl shadow-2xl p-6 w-full max-w-lg border border-gray-200 dark:border-purple-900/50 transition-colors">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 font-serif transition-colors">새 카드 등록</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 transition-colors"><span className="font-semibold text-gray-700 dark:text-gray-200">{album.name}</span> 에 추가 중</p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">카드 이름 *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">카드 이름 *</label>
             <input type="text" value={cardName} onChange={(e) => setCardName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow transition-colors"
               placeholder="예: 홀로그램 피카츄" />
           </div>
 
           <div className="flex gap-4">
             <div className="w-1/2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">등급 (Rarity)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">등급 (Rarity)</label>
               <select value={cardRarity} onChange={(e) => setCardRarity(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 transition-colors">
                 <option value="COMMON">일반 (Common)</option>
                 <option value="RARE">레어 (Rare)</option>
                 <option value="EPIC">에픽 (Epic)</option>
@@ -118,20 +118,20 @@ export default function AddCardModal({ album, onClose, onSuccess }: AddCardModal
               </select>
             </div>
             <div className="w-1/2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">구매 가격 (₩)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">구매 가격 (₩)</label>
               <input type="number" value={cardPrice} onChange={(e) => setCardPrice(e.target.value ? Number(e.target.value) : '')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow transition-colors"
                 placeholder="예: 5000" />
             </div>
           </div>
 
           <div>
             <div className="flex justify-between items-end mb-1">
-              <label className="block text-sm font-medium text-gray-700">이미지 첨부</label>
-              <div className="flex bg-gray-100 rounded-lg p-0.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">이미지 첨부</label>
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 transition-colors">
                 {(['file', 'url'] as const).map(mode => (
-                  <button key={mode}
-                    className={`text-xs px-2 py-1 rounded-md transition-colors ${imageInputMode === mode ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}
+                   <button key={mode}
+                    className={`text-xs px-2 py-1 rounded-md transition-colors ${imageInputMode === mode ? 'bg-white dark:bg-[#1a1740] shadow text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
                     onClick={() => setImageInputMode(mode)}>
                     {mode === 'file' ? '파일 업로드' : '웹 URL'}
                   </button>
@@ -140,25 +140,25 @@ export default function AddCardModal({ album, onClose, onSuccess }: AddCardModal
             </div>
 
             {imageInputMode === 'file' ? (
-              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 dark:border-purple-900/50 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-[#13112c]/50 hover:bg-gray-100 dark:hover:bg-[#1a1740] transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg className="w-6 h-6 mb-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                  <svg className="w-6 h-6 mb-2 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                   </svg>
-                  <p className="mb-1 text-sm text-gray-500"><span className="font-semibold">업로드하려면 클릭하세요</span></p>
-                  <p className="text-xs text-gray-500">PNG, JPG, WEBP 지원</p>
+                  <p className="mb-1 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold transition-colors">업로드하려면 클릭하세요</span></p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors">PNG, JPG, WEBP 지원</p>
                 </div>
                 <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp"
                   onChange={(e) => { if (e.target.files?.[0]) setCardImageFile(e.target.files[0]) }} />
               </label>
             ) : (
               <input type="text" value={cardImageUrl} onChange={(e) => setCardImageUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors"
                 placeholder="https://example.com/image.png (선택사항)" />
             )}
 
             {imageInputMode === 'file' && cardImageFile && (
-              <div className="mt-2 text-xs text-green-600 flex items-center gap-1 bg-green-50 p-1.5 rounded border border-green-200">
+              <div className="mt-2 text-xs text-green-600 dark:text-green-400 flex items-center gap-1 bg-green-50 dark:bg-green-900/20 p-1.5 rounded border border-green-200 dark:border-green-800/50 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                 선택된 파일: {cardImageFile.name}
               </div>
@@ -166,16 +166,16 @@ export default function AddCardModal({ album, onClose, onSuccess }: AddCardModal
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">상세 정보 및 메모</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">상세 정보 및 메모</label>
             <textarea value={cardDescription} onChange={(e) => setCardDescription(e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
               placeholder="카드에 대한 설명이나 특징을 기록해주세요..." />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">My Secret Note</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">My Secret Note</label>
             <textarea value={cardNote} onChange={(e) => setCardNote(e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-yellow-50"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-yellow-50 dark:bg-yellow-900/10 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
               placeholder="어디서 구했나요? 특징이나 상태를 적어주세요." />
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function AddCardModal({ album, onClose, onSuccess }: AddCardModal
           </button>
           <div className="flex gap-3">
             <button onClick={onClose} disabled={isSubmitting || isAiAnalyzing}
-              className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">
+              className="px-4 py-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
               취소
             </button>
             <button onClick={handleSubmit} disabled={isSubmitting || isAiAnalyzing}

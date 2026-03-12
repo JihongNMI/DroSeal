@@ -48,19 +48,19 @@ export function InventoryHeader({
     allCategories.filter(c => c.parentId === parentId);
 
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div className="flex justify-between items-center mb-6 transition-colors">
       <div className="flex items-center gap-3">
-        <h1 className="text-3xl font-bold text-gray-900">인벤토리</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">인벤토리</h1>
       </div>
       <div className="flex gap-3">
         {selectedItemIds.size > 0 && (
-          <div className="relative flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
-            <span className="text-sm font-medium text-blue-900">
+          <div className="relative flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/50 transition-colors">
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-300 transition-colors">
               {selectedItemIds.size}개 선택됨
             </span>
             <button
               onClick={() => setShowBulkActions(!showBulkActions)}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
             >
               일괄 작업
             </button>
@@ -70,10 +70,10 @@ export function InventoryHeader({
                   className="fixed inset-0 z-40"
                   onClick={() => setShowBulkActions(false)}
                 />
-                <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-2 min-w-64 max-h-96 overflow-y-auto">
+                <div className="absolute top-full mt-2 right-0 bg-white dark:bg-[#1a1740] rounded-lg shadow-lg border border-gray-200 dark:border-purple-900/50 z-50 p-2 min-w-64 max-h-96 overflow-y-auto transition-colors">
                   <div className="space-y-1">
                     {/* Category Move with Accordion */}
-                    <div className="px-3 py-2 text-sm font-medium text-gray-700 border-b">카테고리 이동</div>
+                    <div className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-purple-900/30 transition-colors">카테고리 이동</div>
                     {categories
                       .filter(cat => !cat.parentId)
                       .sort((a, b) => {
@@ -88,11 +88,11 @@ export function InventoryHeader({
 
                         return (
                           <div key={category.id}>
-                            <div className="flex items-center">
+                            <div className="flex items-center text-gray-800 dark:text-gray-200 transition-colors">
                               {hasChildren && (
                                 <button
                                   onClick={() => toggleBulkCategoryExpand(category.id)}
-                                  className="p-1 hover:bg-gray-100 rounded"
+                                  className="p-1 hover:bg-gray-100 dark:hover:bg-[#13112c] rounded transition-colors"
                                 >
                                   <span className="text-xs">{isExpanded ? '▼' : '▶'}</span>
                                 </button>
@@ -106,12 +106,12 @@ export function InventoryHeader({
                               </button>
                             </div>
                             {isExpanded && hasChildren && (
-                              <div className="ml-6">
+                              <div className="ml-6 text-gray-700 dark:text-gray-400 transition-colors">
                                 {children.map(child => (
                                   <button
                                     key={child.id}
                                     onClick={() => handleBulkCategoryChange(child.id)}
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#13112c] rounded transition-colors"
                                   >
                                     └ {child.name}
                                   </button>
@@ -122,7 +122,7 @@ export function InventoryHeader({
                         )
                       })}
 
-                    <div className="border-t my-1"></div>
+                    <div className="border-t border-gray-200 dark:border-purple-900/30 my-1 transition-colors"></div>
 
                     {/* Bulk Edit */}
                     <button
@@ -130,17 +130,17 @@ export function InventoryHeader({
                         setShowBulkEditModal(true)
                         setShowBulkActions(false)
                       }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                      className="w-full text-left px-3 py-2 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#13112c] rounded transition-colors"
                     >
                       수량/가격/도감 일괄 수정
                     </button>
 
-                    <div className="border-t my-1"></div>
+                    <div className="border-t border-gray-200 dark:border-purple-900/30 my-1 transition-colors"></div>
 
                     {/* Delete */}
                     <button
                       onClick={handleBulkDelete}
-                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                     >
                       선택 항목 삭제
                     </button>
@@ -168,7 +168,7 @@ export function InventoryHeader({
             setEditingItem(undefined)
             setShowItemForm(true)
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           아이템 추가
         </button>
@@ -177,7 +177,7 @@ export function InventoryHeader({
             setSelectedItemIdForHistory(undefined) // 전체 이력 표시
             setShowHistory(!showHistory)
           }}
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
         >
           {showHistory ? '이력 숨기기' : '이력 보기'}
         </button>

@@ -71,7 +71,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
     <div className="relative inline-block">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+        className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
       >
         이력 검색
       </button>
@@ -85,13 +85,13 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
           />
           
           {/* Search panel */}
-          <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-            <h3 className="text-lg font-semibold mb-4">이력 검색</h3>
+          <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-[#1a1740] rounded-lg shadow-lg border border-gray-200 dark:border-purple-900/50 z-50 p-4 transition-colors">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 transition-colors">이력 검색</h3>
             
             <div className="space-y-4">
               {/* Item created/deleted checkboxes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   아이템 추가/삭제
                 </label>
                 <div className="flex gap-4">
@@ -102,7 +102,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('item_created')}
                       className="mr-2"
                     />
-                    <span className="text-sm text-blue-600 font-medium">아이템 추가</span>
+                    <span className="text-sm text-blue-600 dark:text-blue-400 font-medium transition-colors">아이템 추가</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -111,14 +111,14 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('item_deleted')}
                       className="mr-2"
                     />
-                    <span className="text-sm text-red-600 font-medium">아이템 삭제</span>
+                    <span className="text-sm text-red-600 dark:text-red-400 font-medium transition-colors">아이템 삭제</span>
                   </label>
                 </div>
               </div>
 
               {/* Quantity/Price change checkboxes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   수량/가격 변경
                 </label>
                 <div className="flex gap-4">
@@ -129,7 +129,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('quantity_change')}
                       className="mr-2"
                     />
-                    <span className="text-sm">수량 변경</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">수량 변경</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -138,21 +138,21 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('price_change')}
                       className="mr-2"
                     />
-                    <span className="text-sm">가격 변경</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">가격 변경</span>
                   </label>
                 </div>
               </div>
 
               {/* Quantity search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   수량 조건
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={quantityOperator}
                     onChange={(e) => setQuantityOperator(e.target.value as '>=' | '=' | '<=')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value=">=">&gt;=</option>
                     <option value="=">=</option>
@@ -163,7 +163,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                     value={quantityValue}
                     onChange={(e) => setQuantityValue(e.target.value)}
                     placeholder="수량"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                     min="0"
                   />
                 </div>
@@ -171,14 +171,14 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
 
               {/* Price search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   가격 조건
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={priceOperator}
                     onChange={(e) => setPriceOperator(e.target.value as '>=' | '=' | '<=')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value=">=">&gt;=</option>
                     <option value="=">=</option>
@@ -189,7 +189,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                     value={priceValue}
                     onChange={(e) => setPriceValue(e.target.value)}
                     placeholder="가격"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                     min="0"
                   />
                 </div>
@@ -197,7 +197,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
 
               {/* Name/Notes change checkboxes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   이름/메모 변경
                 </label>
                 <div className="flex gap-4">
@@ -208,7 +208,7 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('name_change')}
                       className="mr-2"
                     />
-                    <span className="text-sm">이름 변경</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">이름 변경</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -217,21 +217,21 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                       onChange={() => handleChangeTypeToggle('notes_change')}
                       className="mr-2"
                     />
-                    <span className="text-sm">메모 변경</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">메모 변경</span>
                   </label>
                 </div>
               </div>
 
               {/* Text search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   텍스트 검색
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={textField}
                     onChange={(e) => setTextField(e.target.value as 'itemName' | 'notes')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value="itemName">아이템 이름</option>
                     <option value="notes">메모</option>
@@ -241,14 +241,14 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                     value={textSearch}
                     onChange={(e) => setTextSearch(e.target.value)}
                     placeholder="검색어 입력"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Date range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   기간
                 </label>
                 <div className="space-y-2">
@@ -257,30 +257,30 @@ export function HistorySearch({ onSearch, onClear }: HistorySearchProps) {
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                     placeholder="시작일"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
                     placeholder="종료일"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-2 mt-4 pt-4 border-t">
+            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-purple-900/30 transition-colors">
               <button
                 onClick={handleSearch}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 검색
               </button>
               <button
                 onClick={handleClear}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
               >
                 초기화
               </button>

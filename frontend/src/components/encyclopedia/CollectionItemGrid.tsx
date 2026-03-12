@@ -63,28 +63,28 @@ export default function CollectionItemGrid({
         100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
       }
     `}</style>
-    <div className="w-full md:w-1/2 h-full p-8 bg-gradient-to-l from-[#fdfbf7] to-[#f4f1ea] overflow-y-auto relative custom-scrollbar flex flex-col">
+    <div className="w-full md:w-1/2 h-full p-8 bg-gradient-to-l from-[#fdfbf7] to-[#f4f1ea] dark:from-[#1a1740] dark:to-[#13112c] overflow-y-auto relative custom-scrollbar flex flex-col transition-colors duration-300">
       {/* 책등 그림자 */}
       <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black/10 to-transparent pointer-events-none z-10" />
 
       {/* 이전 페이지 클릭 영역 */}
       <div
-        className={`absolute left-0 top-16 bottom-0 w-16 z-20 flex items-center justify-start transition-opacity bg-gradient-to-r from-black/5 to-transparent
+        className={`absolute left-0 top-16 bottom-0 w-16 z-20 flex items-center justify-start transition-opacity bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent
           ${currentPage > 1 && !isFlipping ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={goToPrev}
       >
-        <svg className="w-10 h-10 text-gray-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-10 h-10 text-gray-500 dark:text-gray-400 ml-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
         </svg>
       </div>
 
       {/* 다음 페이지 클릭 영역 */}
       <div
-        className={`absolute right-0 top-16 bottom-0 w-16 z-20 flex items-center justify-end transition-opacity bg-gradient-to-l from-black/5 to-transparent
+        className={`absolute right-0 top-16 bottom-0 w-16 z-20 flex items-center justify-end transition-opacity bg-gradient-to-l from-black/5 dark:from-white/5 to-transparent
           ${currentPage < maxPage && !isFlipping ? 'cursor-pointer opacity-0 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={goToNext}
       >
-        <svg className="w-10 h-10 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-10 h-10 text-gray-500 dark:text-gray-400 mr-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
         </svg>
       </div>
@@ -96,9 +96,9 @@ export default function CollectionItemGrid({
       >
         {/* 헤더 */}
         <div className="w-full flex justify-between items-center mb-6 px-4">
-          <h3 className="text-xl font-bold font-serif text-gray-800">컬렉션 아이템</h3>
+          <h3 className="text-xl font-bold font-serif text-gray-800 dark:text-gray-100 transition-colors">컬렉션 아이템</h3>
           <div className="flex items-center gap-4">
-            <span className="text-gray-500 font-serif font-semibold">
+            <span className="text-gray-500 dark:text-gray-400 font-serif font-semibold transition-colors">
               [ {currentPage} / {maxPage} ]
             </span>
             <button
@@ -126,7 +126,7 @@ export default function CollectionItemGrid({
           style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}
         >
           {Array.from({ length: itemsPerPage }).map((_, index) => {
-            const slotNumber = (currentPage - 1) * itemsPerPage + index + 1
+            const slotNumber = (Math.max(1, currentPage) - 1) * itemsPerPage + index + 1
             if (slotNumber > album.gridX * album.gridY) return null
             const item = items.find(c => c.itemNumber === slotNumber) || items[slotNumber - 1] || null
             return (

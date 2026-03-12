@@ -26,3 +26,9 @@
     text-wrap: balance;
   }
 }
+
+/* 커서 스킨 전역 적용 — html 인라인 커서를 모든 하위 요소가 상속 */
+/* html 요소 자체는 제외: stylesheet !important 가 html 인라인 스타일을 덮어쓰기 때문 */
+html.custom-cursor * {
+  cursor: inherit !important;
+}

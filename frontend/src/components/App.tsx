@@ -1,8 +1,10 @@
 import { BrowserRouter } from 'react-router-dom'
 import { AppRoutes } from '../routes'
 import { Layout } from './Layout'
+import { useCursorSkin } from '../hooks/useCursorSkin'
 
 export function App(): JSX.Element {
+  useCursorSkin({ applyGlobalCursor: true })
   // Example: Access environment variables using import.meta.env
   // These variables are replaced at build time by Vite
   const apiUrl = import.meta.env.VITE_API_URL
