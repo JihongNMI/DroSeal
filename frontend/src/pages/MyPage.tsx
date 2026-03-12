@@ -259,7 +259,7 @@ export default function MyPage(): JSX.Element {
               <div className="grid grid-cols-3 gap-3">
                 {skins.filter(skin => skin.folderPath).map(skin => {
                   const isSelected = skin.id === selectedSkinId
-                  const previewUrl = `/cursors/${skin.folderPath}/normal/frame_00.png`
+                  const previewUrl = `/cursors/${skin.folderPath}/output/normal/frame_00.png`
                   return (
                     <button
                       key={skin.id}
