@@ -110,7 +110,7 @@ export function Inventory() {
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="p-6 transition-colors duration-300">
         <div className="container mx-auto">
           <InventoryHeader
             selectedItemIds={selectedItemIds} showBulkActions={showBulkActions}
@@ -126,8 +126,8 @@ export function Inventory() {
           />
 
           {categoryError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">오류: {categoryError}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg p-4 mb-6 transition-colors">
+              <p className="text-red-800 dark:text-red-400 font-medium">오류: {categoryError}</p>
             </div>
           )}
 
@@ -149,16 +149,16 @@ export function Inventory() {
 
             <div className="lg:col-span-3">
               {showHistory ? (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">수량 변동 이력</h2>
+                <div className="bg-white dark:bg-[#1a1740] rounded-lg shadow-md p-6 border border-transparent dark:border-purple-900/30 transition-colors">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">수량 변동 이력</h2>
                   <HistoryPanel itemId={selectedItemIdForHistory} categoryId={selectedCategoryId} history={filteredHistory} items={data.items} categories={categories} />
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1740] rounded-lg shadow-md overflow-hidden border border-transparent dark:border-purple-900/30 transition-colors">
                   {filteredItems.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-gray-500 text-lg mb-2">아이템이 없습니다</p>
-                      <p className="text-gray-400 text-sm">아이템을 추가하여 인벤토리를 시작하세요</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-lg mb-2 transition-colors">아이템이 없습니다</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm transition-colors">아이템을 추가하여 인벤토리를 시작하세요</p>
                     </div>
                   ) : (
                     <>
@@ -227,14 +227,14 @@ export function Inventory() {
 
       <DragOverlay dropAnimation={null}>
         {draggedItem ? (
-          <div className="bg-white shadow-lg rounded px-3 py-2 border-2 border-blue-500 text-sm inline-block whitespace-nowrap pointer-events-none"
+          <div className="bg-white dark:bg-[#13112c] shadow-lg rounded px-3 py-2 border-2 border-blue-500 dark:border-blue-700 text-sm inline-block whitespace-nowrap pointer-events-none transition-colors"
             style={{ cursor: 'grabbing', transform: `translate(-${dragOffset.x}px, -${dragOffset.y}px)` }}>
             {selectedItemIds.size > 1 && selectedItemIds.has(draggedItem.id) ? (
-              <div className="font-medium text-blue-600">{selectedItemIds.size}개 이동 중</div>
+              <div className="font-medium text-blue-600 dark:text-blue-400">{selectedItemIds.size}개 이동 중</div>
             ) : (
               <>
-                <div className="font-medium">{draggedItem.name}</div>
-                <div className="text-xs text-gray-500">{formatCategoryPath(draggedItem.categoryId, categories)}</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{draggedItem.name}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{formatCategoryPath(draggedItem.categoryId, categories)}</div>
               </>
             )}
           </div>

@@ -20,18 +20,18 @@ export default function ProgressBar({
 
   return (
     <div>
-      <div className="flex justify-between items-center font-semibold text-gray-700 mb-1.5 text-sm">
+      <div className="flex justify-between items-center font-semibold text-gray-700 dark:text-gray-300 mb-1.5 text-sm transition-colors">
         <span>{label}</span>
         <span>
           {owned} / {total}
           {showPercent && total > 0 && (
-            <span className="ml-1 text-blue-600">({percent}%)</span>
+            <span className="ml-1 text-blue-600 dark:text-blue-400">({percent}%)</span>
           )}
         </span>
       </div>
-      <div className={`w-full ${trackColor} rounded-full ${barHeight}`}>
+      <div className={`w-full ${trackColor} dark:bg-[#0d0b2b] rounded-full ${barHeight} transition-colors`}>
         <div
-          className={`bg-blue-500 ${barHeight} rounded-full transition-all duration-700 ease-out`}
+          className={`bg-blue-500 dark:bg-blue-600 ${barHeight} rounded-full transition-all duration-700 ease-out`}
           style={{ width: `${width}%` }}
         />
       </div>

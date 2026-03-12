@@ -69,7 +69,7 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+        className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
       >
         아이템 검색
       </button>
@@ -83,20 +83,20 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
           />
           
           {/* Search panel */}
-          <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-            <h3 className="text-lg font-semibold mb-4">아이템 검색</h3>
+          <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-[#1a1740] rounded-lg shadow-lg border border-gray-200 dark:border-purple-900/50 z-50 p-4 transition-colors">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 transition-colors">아이템 검색</h3>
             
             <div className="space-y-4">
               {/* Text search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   텍스트 검색
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={textField}
                     onChange={(e) => setTextField(e.target.value as 'name' | 'notes' | 'encyclopedia')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value="name">이름</option>
                     <option value="notes">메모</option>
@@ -107,20 +107,20 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
                     value={textSearch}
                     onChange={(e) => setTextSearch(e.target.value)}
                     placeholder="검색어 입력"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Category search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   카테고리
                 </label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                 >
                   <option value="">전체 카테고리</option>
                   {categories.map((category) => (
@@ -133,13 +133,13 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
 
               {/* Verification status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   증빙 여부
                 </label>
                 <select
                   value={verificationStatus}
                   onChange={(e) => setVerificationStatus(e.target.value as 'all' | 'verified' | 'mismatch' | 'none')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                 >
                   <option value="all">전체</option>
                   <option value="verified">증빙 있음 (일치)</option>
@@ -150,14 +150,14 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
 
               {/* Quantity search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   수량
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={quantityOperator}
                     onChange={(e) => setQuantityOperator(e.target.value as '>=' | '=' | '<=')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value=">=">&gt;=</option>
                     <option value="=">=</option>
@@ -168,7 +168,7 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
                     value={quantityValue}
                     onChange={(e) => setQuantityValue(e.target.value)}
                     placeholder="수량"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                     min="0"
                   />
                 </div>
@@ -176,14 +176,14 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
 
               {/* Price search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   가격
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={priceOperator}
                     onChange={(e) => setPriceOperator(e.target.value as '>=' | '=' | '<=')}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value=">=">&gt;=</option>
                     <option value="=">=</option>
@@ -194,7 +194,7 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
                     value={priceValue}
                     onChange={(e) => setPriceValue(e.target.value)}
                     placeholder="가격"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                     min="0"
                   />
                 </div>
@@ -202,7 +202,7 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
 
               {/* Date range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                   기간
                 </label>
                 <div className="space-y-2">
@@ -211,30 +211,30 @@ export function ItemSearch({ categories, onSearch, onClear }: ItemSearchProps) {
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                     placeholder="시작일"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
                     placeholder="종료일"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-2 mt-4 pt-4 border-t">
+            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-purple-900/30 transition-colors">
               <button
                 onClick={handleSearch}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 검색
               </button>
               <button
                 onClick={handleClear}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
               >
                 초기화
               </button>

@@ -120,7 +120,7 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
       return `메모 변경: "${prevNotes}" → "${newNotes}"`
     } else if (record.changeType === 'name_change') {
       return `이름 변경: "${record.previousName}" → "${record.newName}"`
-    } else if (record.changeType === 'price_change' || record.changeType === 'price_updated') {
+    } else if (record.changeType === 'price_change') {
       const prevPrice = record.previousPrice !== undefined ? `₩${record.previousPrice.toLocaleString()}` : '(없음)'
       const newPrice = record.newPrice !== undefined ? `₩${record.newPrice.toLocaleString()}` : '(없음)'
       return `가격 변경: ${prevPrice} → ${newPrice}`
@@ -145,9 +145,9 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
 
   if (filteredHistory.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">변동 이력</h2>
-        <p className="text-gray-500 text-center py-8">
+      <div className="bg-white dark:bg-[#1a1740] rounded-lg shadow p-6 border border-transparent dark:border-purple-900/30 transition-colors">
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 transition-colors">변동 이력</h2>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8 transition-colors">
           {itemId ? '이 아이템의 변동 이력이 없습니다.' : '변동 이력이 없습니다.'}
         </p>
       </div>
@@ -155,10 +155,10 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold mb-4">
+    <div className="bg-white dark:bg-[#1a1740] rounded-lg shadow p-6 border border-transparent dark:border-purple-900/30 transition-colors">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 transition-colors">
         변동 이력
-        <span className="text-sm font-normal text-gray-500 ml-2">
+        <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2 transition-colors">
           (총 {groupedHistory.length}건)
         </span>
       </h2>
@@ -167,30 +167,29 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
       <div className="space-y-2">
         {paginatedHistory.map((group) => {
           const firstRecord = group.records[0]
-          const hasMultipleChanges = group.records.length > 1
           
           return (
             <div
               key={group.key}
-              className="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50"
+              className="border-l-4 border-blue-500 dark:border-blue-600 pl-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors">
                     {formatDate(firstRecord.timestamp)}
                   </div>
-                  <div className="font-medium">
+                  <div className="font-medium text-gray-900 dark:text-gray-100 transition-colors">
                     {firstRecord.itemName}
                   </div>
-                  <div className="text-sm text-gray-700 space-y-1">
+                  <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1 transition-colors">
                     {group.records.map((record, idx) => (
                       <div
                         key={idx}
                         className={
                           record.changeType === 'item_deleted' 
-                            ? 'text-red-600'
+                            ? 'text-red-600 dark:text-red-400'
                             : record.changeType === 'item_created'
-                            ? 'text-green-600'
+                            ? 'text-green-600 dark:text-green-400'
                             : ''
                         }
                       >
@@ -207,11 +206,11 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t">
+        <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-purple-900/30 transition-colors">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 rounded border border-gray-300 dark:border-purple-900/50 hover:bg-gray-100 dark:hover:bg-[#13112c] text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             이전
           </button>
@@ -222,11 +221,11 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
               <>
                 <button
                   onClick={() => goToPage(1)}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100"
+                  className="px-3 py-1 rounded border border-gray-300 dark:border-purple-900/50 hover:bg-gray-100 dark:hover:bg-[#13112c] text-gray-700 dark:text-gray-300 transition-colors"
                 >
                   1
                 </button>
-                {currentPage > 4 && <span className="px-2">...</span>}
+                {currentPage > 4 && <span className="px-2 text-gray-500 dark:text-gray-400">...</span>}
               </>
             )}
 
@@ -243,10 +242,10 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`px-3 py-1 rounded border ${
+                  className={`px-3 py-1 rounded border transition-colors ${
                     page === currentPage
                       ? 'bg-blue-500 text-white border-blue-500'
-                      : 'border-gray-300 hover:bg-gray-100'
+                      : 'border-gray-300 dark:border-purple-900/50 hover:bg-gray-100 dark:hover:bg-[#13112c] text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {page}
@@ -256,10 +255,10 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
             {/* Show last page */}
             {currentPage < totalPages - 2 && (
               <>
-                {currentPage < totalPages - 3 && <span className="px-2">...</span>}
+                {currentPage < totalPages - 3 && <span className="px-2 text-gray-500 dark:text-gray-400">...</span>}
                 <button
                   onClick={() => goToPage(totalPages)}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100"
+                  className="px-3 py-1 rounded border border-gray-300 dark:border-purple-900/50 hover:bg-gray-100 dark:hover:bg-[#13112c] text-gray-700 dark:text-gray-300 transition-colors"
                 >
                   {totalPages}
                 </button>
@@ -270,7 +269,7 @@ export function HistoryPanel({ itemId, categoryId, history, items, categories }:
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 rounded border border-gray-300 dark:border-purple-900/50 hover:bg-gray-100 dark:hover:bg-[#13112c] text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             다음
           </button>

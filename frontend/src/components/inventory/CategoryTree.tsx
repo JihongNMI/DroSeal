@@ -78,10 +78,10 @@ function CategoryNode({
   return (
     <div className="category-node" ref={setNodeRef}>
       <div
-        className={`category-item flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 ${
-          isSelected ? 'bg-blue-100 border-l-4 border-blue-500' : 
-          isMatched ? 'bg-yellow-100' : 
-          isOver ? 'bg-green-100 border-l-4 border-green-500' : ''
+        className={`category-item flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#13112c] transition-colors ${
+          isSelected ? 'bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-500' : 
+          isMatched ? 'bg-yellow-100 dark:bg-yellow-900/30' : 
+          isOver ? 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500' : ''
         }`}
         style={indentStyle}
         onClick={() => onCategoryClick(category.id)}
@@ -101,10 +101,10 @@ function CategoryNode({
           {!hasChildren && <span className="w-5 flex-shrink-0" />}
           
           {/* Category name and item count */}
-          <span className="category-name font-medium text-gray-800 break-words">
+          <span className="category-name font-medium text-gray-800 dark:text-gray-200 break-words transition-colors">
             {category.name}
           </span>
-          <span className="item-count text-sm text-gray-500 flex-shrink-0">
+          <span className="item-count text-sm text-gray-500 dark:text-gray-400 flex-shrink-0 transition-colors">
             ({totalItemCount})
           </span>
         </div>
@@ -112,14 +112,14 @@ function CategoryNode({
         {/* Action buttons */}
         <div className="category-actions flex gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
-            className="edit-btn text-blue-600 hover:text-blue-800 text-sm px-2 py-1"
+            className="edit-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm px-2 py-1 transition-colors"
             onClick={() => onEdit(category.id)}
             aria-label={`Edit ${category.name}`}
           >
             수정
           </button>
           <button
-            className="delete-btn text-red-600 hover:text-red-800 text-sm px-2 py-1 disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="delete-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm px-2 py-1 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
             onClick={() => onDelete(category.id)}
             disabled={isUncategorized}
             aria-label={`Delete ${category.name}`}
@@ -191,24 +191,24 @@ export function CategoryTree({
     })
 
   return (
-    <div className="category-tree border border-gray-300 rounded-lg overflow-hidden">
+    <div className="category-tree border border-gray-300 dark:border-purple-900/30 rounded-lg overflow-hidden transition-colors">
       {/* All items button */}
       <div
         onClick={onShowAll}
-        className={`category-item flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 ${
-          !selectedCategoryId ? 'bg-blue-100 border-l-4 border-blue-500' : ''
+        className={`category-item flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#13112c] transition-colors ${
+          !selectedCategoryId ? 'bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-500' : ''
         }`}
       >
         <div className="flex items-center gap-2 flex-1">
-          <span className="category-name font-semibold text-gray-800">전체</span>
-          <span className="item-count text-sm text-gray-500 flex-shrink-0">
+          <span className="category-name font-semibold text-gray-800 dark:text-gray-200 transition-colors">전체</span>
+          <span className="item-count text-sm text-gray-500 dark:text-gray-400 flex-shrink-0 transition-colors">
             ({totalItemCount})
           </span>
         </div>
       </div>
 
       {topLevelCategories.length === 0 ? (
-        <div className="empty-state p-4 text-center text-gray-500">
+        <div className="empty-state p-4 text-center text-gray-500 dark:text-gray-400 transition-colors">
           카테고리가 없습니다.
         </div>
       ) : (

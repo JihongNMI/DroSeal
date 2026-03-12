@@ -36,12 +36,12 @@ export function CategorySidebar({
   onShowAll,
 }: CategorySidebarProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4">
-      <h2 className="font-semibold text-gray-900 mb-4">카테고리</h2>
+    <div className="bg-white dark:bg-[#1a1740] rounded-lg shadow-md p-4 border border-transparent dark:border-purple-900/30 transition-colors">
+      <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">카테고리</h2>
 
       <button
         onClick={onAddCategoryClick}
-        className="w-full mb-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        className="w-full mb-3 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
       >
         카테고리 추가
       </button>

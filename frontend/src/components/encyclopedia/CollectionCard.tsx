@@ -21,10 +21,13 @@ export default function CollectionCard({ col, onClick }: CollectionCardProps) {
       <img
         src={col.thumbnailUrl || 'https://via.placeholder.com/160x224?text=No+Image'}
         alt={col.name}
-        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out
-          ${isComplete
-            ? 'grayscale-0 opacity-100 brightness-110 scale-100'
-            : 'grayscale opacity-70 brightness-75 scale-110 group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110 group-hover:scale-100'}`}
+        style={{
+          filter: isComplete
+            ? 'grayscale(0%) brightness(1.1)'
+            : `grayscale(${100 - progress}%) brightness(${0.7 + (progress / 100) * 0.3})`,
+          opacity: 0.7 + (progress / 100) * 0.3
+        }}
+        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
       />
 
       {/* 텍스트 및 UI 레이어 */}
@@ -36,7 +39,7 @@ export default function CollectionCard({ col, onClick }: CollectionCardProps) {
           </h3>
           <div className="flex gap-1 mt-1 flex-wrap">
             {col.isOfficial && (
-              <span className="inline-block px-2 py-0.5 bg-yellow-400 text-[10px] font-black text-blue-900 rounded-sm">
+              <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold">
                 OFFICIAL
               </span>
             )}

@@ -60,6 +60,9 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/v1/transactions/**").permitAll()
                         .requestMatchers("/api/v1/goods/**").permitAll()
+                        // TODO: JWT 활성화 후 인증 적용 여부 검토
+                        .requestMatchers("/api/v1/cursor-skins/**").permitAll()
+                        .requestMatchers("/api/v1/users/**").permitAll()
                         // 그 외 모든 요청은 인증 필요 (프론트/백엔드 테스트 시 주석 해제하여 검증, 일단 permitAll 유지하라면 임시로 permitAll도
                         // 가능하나 '진짜 로그인 시스템'이므로 인증 적용)
                         .anyRequest().authenticated())

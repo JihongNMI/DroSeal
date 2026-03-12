@@ -46,7 +46,7 @@ export function CategorySearch({
           value={searchQuery}
           onChange={handleInputChange}
           placeholder="카테고리 검색..."
-          className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-purple-900/50 bg-white dark:bg-[#13112c] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
           aria-label="Search categories"
         />
         
@@ -54,7 +54,7 @@ export function CategorySearch({
         {searchQuery && (
           <button
             onClick={handleClear}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none transition-colors"
             aria-label="Clear search"
             title="검색 초기화"
           >
@@ -78,18 +78,18 @@ export function CategorySearch({
 
       {/* Optional: Display search results count */}
       {searchQuery && (
-        <div className="mt-2 text-sm text-gray-600">
+        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">
           {hasResults ? (
             <span>
               {searchResult.matchedCategories.size}개의 카테고리 찾음
               {searchResult.visibleCategories.size > searchResult.matchedCategories.size && (
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-gray-500">
                   {' '}(상위/하위 카테고리 포함: {searchResult.visibleCategories.size}개)
                 </span>
               )}
             </span>
           ) : (
-            <span className="text-gray-500">검색 결과가 없습니다.</span>
+            <span className="text-gray-500 dark:text-gray-500">검색 결과가 없습니다.</span>
           )}
         </div>
       )}

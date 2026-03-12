@@ -25,4 +25,8 @@ public class User extends BaseEntity {
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cursor_skin_id")
+    private CursorSkin cursorSkin;
 }
