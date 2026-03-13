@@ -5,6 +5,7 @@ import com.goodsplatform.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -55,4 +56,25 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
      * 특정 도감에 속하는 보유 아이템 목록 조회 (추후 JWT 유저 검증 추가 예정)
      */
     java.util.List<InventoryItem> findByItem_Collection_CollectionId(Long collectionId);
+
+    /**
+     * 도감 삭제 시 해당 도감의 CollectionItem FK NULL 처리 (인벤토리 아이템 보존)
+     */
+    @Modifying
+    @Query("UPDATE InventoryItem i SET i.item = null WHERE i.item.collection.collectionId = :collectionId")
+    void detachCollectionItemsByCollectionId(@Param("collectionId") Long collectionId);
+
+    /**
+     * 단일 CollectionItem 삭제 시 해당 아이템 FK NULL 처리 (인벤토리 아이템 보존)
+     */
+    @Modifying
+    @Query("UPDATE InventoryItem i SET i.item = null WHERE i.item.itemId = :itemId")
+    void detachItemByItemId(@Param("itemId") Long itemId);
+
+    /**
+     * 도감 삭제 시 해당 도감의 Collection FK NULL 처리 (인벤토리 아이템 보존)
+     */
+    @Modifying
+    @Query("UPDATE InventoryItem i SET i.collection = null WHERE i.collection.collectionId = :collectionId")
+    void detachCollectionByCollectionId(@Param("collectionId") Long collectionId);
 }

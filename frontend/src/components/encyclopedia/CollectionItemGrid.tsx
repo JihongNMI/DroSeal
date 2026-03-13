@@ -14,6 +14,7 @@ interface CollectionItemGridProps {
   onAddCard: () => void
   onCardClick: (item: CollectionItemResponseDto) => void
   onEmptySlotClick: (slotNumber: number) => void
+  onDeleteItem?: (itemId: number) => void
 }
 
 export default function CollectionItemGrid({
@@ -27,6 +28,7 @@ export default function CollectionItemGrid({
   onAddCard,
   onCardClick,
   onEmptySlotClick,
+  onDeleteItem,
 }: CollectionItemGridProps) {
   const [isFlipping, setIsFlipping] = useState<'next' | 'prev' | null>(null)
   const maxPage = Math.ceil((album.gridX * album.gridY) / itemsPerPage)
@@ -63,7 +65,7 @@ export default function CollectionItemGrid({
         100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
       }
     `}</style>
-    <div className="w-full md:w-1/2 h-full p-8 bg-gradient-to-l from-[#fdfbf7] to-[#f4f1ea] dark:from-[#1a1740] dark:to-[#13112c] overflow-y-auto relative custom-scrollbar flex flex-col transition-colors duration-300">
+    <div className="w-full md:w-1/2 h-full px-6 py-4 bg-gradient-to-l from-[#fdfbf7] to-[#f4f1ea] dark:from-[#1a1740] dark:to-[#13112c] overflow-hidden relative flex flex-col transition-colors duration-300">
       {/* 책등 그림자 */}
       <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black/10 to-transparent pointer-events-none z-10" />
 
@@ -90,12 +92,12 @@ export default function CollectionItemGrid({
       </div>
 
       {/* 페이지 플립 애니메이션 래퍼 */}
-      <div className={`relative z-10 w-full flex flex-col items-center flex-1 origin-left
+      <div className={`relative z-10 w-full flex flex-col items-center flex-1 min-h-0 origin-left
         ${isFlipping === 'next' ? 'animate-[pageFlipNext_0.6s_ease-in-out]' : ''}
         ${isFlipping === 'prev' ? 'animate-[pageFlipPrev_0.6s_ease-in-out]' : ''}`}
       >
         {/* 헤더 */}
-        <div className="w-full flex justify-between items-center mb-6 px-4">
+        <div className="w-full flex justify-between items-center mb-2 px-4">
           <h3 className="text-xl font-bold font-serif text-gray-800 dark:text-gray-100 transition-colors">컬렉션 아이템</h3>
           <div className="flex items-center gap-4">
             <span className="text-gray-500 dark:text-gray-400 font-serif font-semibold transition-colors">
@@ -115,15 +117,18 @@ export default function CollectionItemGrid({
 
         {/* 공식 도감 보유 현황 바 */}
         {album.isOfficial && (
-          <div className="w-full px-4 mb-4">
+          <div className="w-full px-4 mb-2">
             <ProgressBar owned={album.collectedItems} total={album.totalItems} label="보유 현황" size="sm" />
           </div>
         )}
 
         {/* 3×3 그리드 */}
         <div
-          className="grid gap-3 mx-auto w-full flex-1"
-          style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}
+          className="grid gap-2 mx-auto w-full flex-1 min-h-0"
+          style={{
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
+          }}
         >
           {Array.from({ length: itemsPerPage }).map((_, index) => {
             const slotNumber = (Math.max(1, currentPage) - 1) * itemsPerPage + index + 1
@@ -139,6 +144,7 @@ export default function CollectionItemGrid({
                 isSelectedEmpty={selectedEmptySlotInfo?.slotNumber === slotNumber}
                 onCardClick={onCardClick}
                 onEmptySlotClick={onEmptySlotClick}
+                onDeleteItem={onDeleteItem}
               />
             )
           })}

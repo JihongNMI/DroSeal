@@ -8,6 +8,7 @@ interface CollectionItemCardProps {
   isSelectedEmpty: boolean
   onCardClick: (item: CollectionItemResponseDto) => void
   onEmptySlotClick: (slotNumber: number) => void
+  onDeleteItem?: (itemId: number) => void
 }
 
 export default function CollectionItemCard({
@@ -18,14 +19,15 @@ export default function CollectionItemCard({
   isSelectedEmpty,
   onCardClick,
   onEmptySlotClick,
+  onDeleteItem,
 }: CollectionItemCardProps) {
   if (item) {
     const isOwned = item.isOwned ?? true // 커스텀 도감은 항상 보유로 처리
 
     return (
       <div
-        onClick={() => onCardClick(item)}
-        className={`aspect-[3/4] rounded-md flex flex-col items-center justify-center bg-white dark:bg-[#1a1740] shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer overflow-hidden relative group
+        onMouseDown={(e) => { if (e.button === 0) onCardClick(item) }}
+        className={`h-full w-full rounded-md flex flex-col items-center justify-center bg-white dark:bg-[#1a1740] shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer overflow-hidden relative group
           ${isSelected ? 'ring-4 ring-blue-500 scale-105 z-10' : ''}`}
         title={item.name}
       >
@@ -42,6 +44,25 @@ export default function CollectionItemCard({
             </div>
           )}
         </div>
+
+        {/* 삭제 버튼 */}
+        {onDeleteItem && (
+          <button
+            onMouseDown={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              if (window.confirm(`"${item.name}" 아이템을 삭제하시겠습니까?`)) {
+                onDeleteItem(item.itemId)
+              }
+            }}
+            className="absolute top-1 right-1 z-30 w-8 h-8 bg-black/50 hover:bg-red-600 text-white/80 hover:text-white rounded-full flex items-center justify-center invisible group-hover:visible transition-all duration-200"
+            title="아이템 삭제"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
         {/* 보유 여부 배지 (공식 도감만) */}
         {isOfficial && (
@@ -70,7 +91,7 @@ export default function CollectionItemCard({
   return (
     <div
       onClick={() => onEmptySlotClick(slotNumber)}
-      className={`aspect-[3/4] border-2 border-dashed border-gray-300 dark:border-purple-900/50 rounded-md flex items-center justify-center bg-gray-50/50 dark:bg-[#13112c]/50 hover:bg-gray-100 dark:hover:bg-[#1a1740] transition-colors cursor-pointer
+      className={`h-full w-full border-2 border-dashed border-gray-300 dark:border-purple-900/50 rounded-md flex items-center justify-center bg-gray-50/50 dark:bg-[#13112c]/50 hover:bg-gray-100 dark:hover:bg-[#1a1740] transition-colors cursor-pointer
         ${isSelectedEmpty ? 'ring-4 ring-gray-400 dark:ring-gray-600 bg-gray-100 dark:bg-[#1a1740]' : ''}`}
       title={`Slot ${slotNumber} (Empty)`}
     >

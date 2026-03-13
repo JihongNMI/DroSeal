@@ -34,4 +34,9 @@ public interface CollectionItemRepository extends JpaRepository<CollectionItem, 
      * 특정 도감의 전체 아이템 목록 조회 (itemNumber 순 정렬)
      */
     List<CollectionItem> findByCollection_CollectionIdOrderByItemNumberAsc(Long collectionId);
+
+    /**
+     * 도감 삭제 시 해당 도감의 CollectionItem 일괄 삭제
+     */
+    void deleteByCollection_CollectionId(Long collectionId);
 }

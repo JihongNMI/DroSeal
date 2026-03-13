@@ -19,4 +19,10 @@ public class ItemSearchCondition {
      * 텍스트 키워드 부분 검색 (아이템명, 설명 등에 적용)
      */
     private String keyword;
+
+    /**
+     * 특정 도감(컬렉션) ID로 필터링
+     * null이면 전체 도감 대상
+     */
+    private Long collectionId;
 }

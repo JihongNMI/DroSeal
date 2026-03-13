@@ -64,6 +64,20 @@ public class CollectionController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{id}/items/{itemId}")
+    public ResponseEntity<Void> deleteCollectionItem(
+            @PathVariable("id") Long id,
+            @PathVariable("itemId") Long itemId) {
+        collectionService.deleteCollectionItem(id, itemId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCollection(@PathVariable("id") Long id) {
+        collectionService.deleteCollection(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/thumbnail")
     public ResponseEntity<Void> updateCollectionThumbnail(
             @PathVariable("id") Long id,

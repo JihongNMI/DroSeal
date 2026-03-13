@@ -122,6 +122,14 @@ export const updateCollectionItemImage = async (itemId: number, imageUrl: string
     return response.data;
 };
 
+export const deleteCollection = async (collectionId: number): Promise<void> => {
+    await apiClient.delete(`/collections/${collectionId}`);
+};
+
+export const deleteCollectionItem = async (collectionId: number, itemId: number): Promise<void> => {
+    await apiClient.delete(`/collections/${collectionId}/items/${itemId}`);
+};
+
 export const updateCollectionThumbnail = async (collectionId: number, thumbnailUrl: string): Promise<void> => {
     const response = await apiClient.patch(`/collections/${collectionId}/thumbnail`, { thumbnailUrl });
     return response.data;

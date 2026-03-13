@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Program Files\\\\MariaDB\\\\MariaDB 12.1\\\\bin\\\\' 2>&1 | Select-Object Name | head -10\")"
+    ]
+  }
+}

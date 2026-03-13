@@ -123,6 +123,36 @@ public class CollectionService {
     }
 
     /**
+     * 도감 삭제
+     * - InventoryItem의 CollectionItem FK와 Collection FK를 NULL 처리하여 인벤토리 아이템 보존
+     * - CollectionItem 일괄 삭제 후 Collection 삭제
+     */
+    @Transactional
+    public void deleteCollection(Long collectionId) {
+        getCollectionById(collectionId); // 존재 여부 확인
+        inventoryItemRepository.detachCollectionItemsByCollectionId(collectionId);
+        inventoryItemRepository.detachCollectionByCollectionId(collectionId);
+        collectionItemRepository.deleteByCollection_CollectionId(collectionId);
+        collectionRepository.deleteById(collectionId);
+    }
+
+    /**
+     * 도감 내 단일 아이템(CollectionItem) 삭제
+     * - collectionId로 소속 도감 검증 후 삭제
+     * - InventoryItem의 item FK는 NULL 처리하여 보존
+     */
+    @Transactional
+    public void deleteCollectionItem(Long collectionId, Long itemId) {
+        CollectionItem item = collectionItemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
+        if (!item.getCollection().getCollectionId().equals(collectionId)) {
+            throw new IllegalArgumentException("해당 도감에 속하지 않는 아이템입니다.");
+        }
+        inventoryItemRepository.detachItemByItemId(itemId);
+        collectionItemRepository.deleteById(itemId);
+    }
+
+    /**
      * 도감 전체 아이템 목록 조회 (유저 보유 여부 포함)
      * - 유저가 보유한 CollectionItem ID를 단일 쿼리로 조회 후 isOwned 매핑 (N+1 방지)
      */

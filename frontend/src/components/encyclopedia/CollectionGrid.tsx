@@ -11,6 +11,7 @@ interface CollectionGridProps {
   onSearchChange: (value: string) => void
   onFilterChange: (value: string) => void
   onAlbumOpen: (col: CollectionProgressResponseDto) => void
+  onDelete: (collectionId: number) => void
 }
 
 export default function CollectionGrid({
@@ -22,6 +23,7 @@ export default function CollectionGrid({
   onSearchChange,
   onFilterChange,
   onAlbumOpen,
+  onDelete,
 }: CollectionGridProps) {
   // 카테고리별 그룹핑
   const grouped = collections.reduce((acc, col) => {
@@ -86,6 +88,7 @@ export default function CollectionGrid({
                     key={col.collectionId}
                     col={col}
                     onClick={() => onAlbumOpen(col)}
+                    onDelete={onDelete}
                   />
                 ))}
               </div>

@@ -34,6 +34,7 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
                 .leftJoin(collectionItem.collection, collection).fetchJoin()
                 .leftJoin(collection.categories, inventoryCategory).fetchJoin()
                 .where(
+                        collectionIdEq(condition.getCollectionId()),
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()))
                 .offset(pageable.getOffset())
@@ -48,11 +49,22 @@ public class CollectionItemRepositoryCustomImpl implements CollectionItemReposit
                 .leftJoin(collectionItem.collection, collection)
                 .leftJoin(collection.categories, inventoryCategory)
                 .where(
+                        collectionIdEq(condition.getCollectionId()),
                         categoryPathStartsWith(condition.getCategoryPathPrefix()),
                         keywordContains(condition.getKeyword()));
 
         Long count = countQuery.fetchOne();
         return new PageImpl<>(content, pageable, count != null ? count : 0L);
+    }
+
+    /**
+     * 특정 도감 ID 필터 조건
+     */
+    private BooleanExpression collectionIdEq(Long collectionId) {
+        if (collectionId == null) {
+            return null;
+        }
+        return QCollectionItem.collectionItem.collection.collectionId.eq(collectionId);
     }
 
     /**
