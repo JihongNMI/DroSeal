@@ -14,26 +14,26 @@ const cursorList = [
 
 const CursorTestBoard = () => {
   return (
-    <div className="p-6 bg-slate-900 dark:bg-[#13112c] rounded-xl text-slate-300 border border-transparent dark:border-purple-900/30 transition-colors">
+    <div className="p-6 bg-gray-100 dark:bg-[#13112c] rounded-xl text-gray-600 border border-gray-200 dark:border-purple-900/30 transition-colors">
       <div className="mb-5">
-        <h2 className="text-lg font-bold text-white mb-1 transition-colors">마우스 커서 테스트</h2>
-        <p className="text-slate-400 dark:text-gray-400 text-xs transition-colors">마우스를 각 카드 위에 올려 커서 모양이 어떻게 변하는지 확인해 보세요.</p>
+        <h2 className="text-lg font-bold text-gray-900 mb-1 transition-colors">마우스 커서 테스트</h2>
+        <p className="text-gray-500 dark:text-gray-400 text-xs transition-colors">마우스를 각 카드 위에 올려 커서 모양이 어떻게 변하는지 확인해 보세요.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {cursorList.map((item) => (
           <div
             key={item.id}
-            className={`p-4 rounded-xl bg-slate-800 dark:bg-[#1a1740] border border-slate-700/50 dark:border-purple-900/40
-                        transition-all duration-300 hover:bg-slate-700 dark:hover:bg-blue-900/20 hover:border-blue-500/30 dark:hover:border-blue-500/50
+            className={`p-4 rounded-xl bg-white dark:bg-[#1a1740] border border-gray-200 dark:border-purple-900/40
+                        transition-all duration-300 hover:bg-gray-200 dark:hover:bg-blue-900/20 hover:border-blue-500/30 dark:hover:border-blue-500/50
                         shadow-sm hover:shadow-md
                         ${item.cursorClass}`}
           >
             <div className="text-blue-400 dark:text-blue-300 text-2xl mb-3 font-black transition-colors">
               {item.icon}
             </div>
-            <h3 className="text-white dark:text-gray-100 font-bold text-sm mb-1 transition-colors">{item.name}</h3>
-            <p className="text-slate-400 dark:text-gray-400 text-xs leading-relaxed break-keep transition-colors">
+            <h3 className="text-gray-900 dark:text-gray-100 font-bold text-sm mb-1 transition-colors">{item.name}</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed break-keep transition-colors">
               {item.desc}
             </p>
           </div>
